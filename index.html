@@ -73,8 +73,11 @@
             <section id="listening-to" class="mt-12">
                 <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
                 <div class="bg-gray-800 p-8 rounded-lg shadow-xl text-center">
-                    <div id="now-playing-container">
+                    <div id="now-playing-container" class="space-y-2">
                         <p class="text-gray-400">Loading music data...</p>
+                    </div>
+                    <div id="scrobble-count-container" class="mt-4 text-gray-500">
+                        <p>Total scrobbles: Loading...</p>
                     </div>
                 </div>
             </section>
@@ -159,42 +162,59 @@
     </div>
 
     <script>
-        const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333'; // Replace with your Last.fm API key
-        const USERNAME = 'TibbevanZ'; // Replace with your Last.fm username
-        const URL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
+        const API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your Last.fm API key
+        const USERNAME = 'YOUR_LAST_FM_USERNAME_HERE'; // Replace with your Last.fm username
 
-        async function fetchRecentTrack() {
+        // URL to get the most recent track
+        const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
+        // URL to get user information (for scrobble count)
+        const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
+
+        async function fetchLastFmData() {
             try {
-                const response = await fetch(URL);
-                const data = await response.json();
-                const container = document.getElementById('now-playing-container');
+                // Fetch recent track data
+                const trackResponse = await fetch(trackURL);
+                const trackData = await trackResponse.json();
+                const trackContainer = document.getElementById('now-playing-container');
 
-                if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length > 0) {
-                    const track = data.recenttracks.track[0];
+                if (trackData.recenttracks && trackData.recenttracks.track && trackData.recenttracks.track.length > 0) {
+                    const track = trackData.recenttracks.track[0];
                     const artist = track.artist['#text'];
                     const name = track.name;
                     const nowPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
 
                     if (nowPlaying) {
-                        container.innerHTML = `<p class="text-xl font-bold text-white animate-pulse">Scrobbling now:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
+                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white animate-pulse">Scrobbling now:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
                     } else {
-                        container.innerHTML = `<p class="text-xl font-bold text-white">Last scrobbled:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
+                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white">Last scrobbled:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
                     }
                 } else {
-                    container.innerHTML = '<p class="text-gray-400">No recent tracks found.</p>';
+                    trackContainer.innerHTML = '<p class="text-gray-400">No recent tracks found.</p>';
+                }
+
+                // Fetch user info for scrobble count
+                const infoResponse = await fetch(infoURL);
+                const infoData = await infoResponse.json();
+                const countContainer = document.getElementById('scrobble-count-container');
+                
+                if (infoData.user && infoData.user.playcount) {
+                    const playcount = infoData.user.playcount;
+                    countContainer.innerHTML = `<p>Total scrobbles: ${playcount}</p>`;
+                } else {
+                    countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
                 }
 
             } catch (error) {
                 console.error('Error fetching Last.fm data:', error);
-                const container = document.getElementById('now-playing-container');
-                container.innerHTML = '<p class="text-gray-400">Could not load music data. Maybe the API key is wrong?</p>';
+                document.getElementById('now-playing-container').innerHTML = '<p class="text-gray-400">Could not load music data.</p>';
+                document.getElementById('scrobble-count-container').innerHTML = `<p>Could not load total scrobbles.</p>`;
             }
         }
 
         // Fetch data when the page loads
-        fetchRecentTrack();
+        fetchLastFmData();
         // Refresh every 10 seconds
-        setInterval(fetchRecentTrack, 10000); 
+        setInterval(fetchLastFmData, 10000); 
     </script>
 
 </body>
