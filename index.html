@@ -77,7 +77,7 @@
                         <p class="text-gray-400">Loading music data...</p>
                     </div>
                     <div id="scrobble-count-container" class="mt-4 text-gray-500">
-                        <p>Total scrobbles: Loading...</p>
+                        <p>Total Songs listened to with last.fm: Loading...</p>
                     </div>
                 </div>
             </section>
@@ -162,8 +162,8 @@
     </div>
 
     <script>
-        const API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your Last.fm API key
-        const USERNAME = 'YOUR_LAST_FM_USERNAME_HERE'; // Replace with your Last.fm username
+        const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333'; // Replace with your Last.fm API key
+        const USERNAME = 'TibbevanZ'; // Replace with your Last.fm username
 
         // URL to get the most recent track
         const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
@@ -184,9 +184,9 @@
                     const nowPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
 
                     if (nowPlaying) {
-                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white animate-pulse">Scrobbling now:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
+                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white animate-pulse">Listening now:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
                     } else {
-                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white">Last scrobbled:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
+                        trackContainer.innerHTML = `<p class="text-xl font-bold text-white">Last Listened To:</p><p class="text-lg text-gray-300 mt-2">${name} by ${artist}</p>`;
                     }
                 } else {
                     trackContainer.innerHTML = '<p class="text-gray-400">No recent tracks found.</p>';
