@@ -112,7 +112,7 @@
                         <p class="text-gray-400">I like finding out how things work and tinkering with gadgets.</p>
                     </div>
                 </div>
-            </section
+            </section>
         </main>
 
         <footer class="text-center mt-16 text-gray-500">
@@ -183,7 +183,33 @@
         }
 
         fetchLastFmData();
-        setInterval(fetchLastFmData, 10000); 
+        setInterval(fetchLastFmData, 10000);
+
+        // --- Discord webhook for newcomers ---
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ'; // <-- Replace this with your actual webhook URL
+
+        async function sendDiscordWebhookMessage(content) {
+            try {
+                await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content }),
+                });
+                console.log('Discord webhook sent.');
+            } catch (error) {
+                console.error('Failed to send Discord webhook:', error);
+            }
+        }
+
+        function checkNewVisitor() {
+            const visited = localStorage.getItem('hasVisited');
+            if (!visited) {
+                localStorage.setItem('hasVisited', 'true');
+                sendDiscordWebhookMessage(`🚀 New visitor on Tibbe's website!`);
+            }
+        }
+
+        checkNewVisitor();
     </script>
 
 </body>
