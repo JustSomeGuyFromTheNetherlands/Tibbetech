@@ -127,7 +127,9 @@
     <script>
         const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333';
         const USERNAME = 'TibbevanZ';
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN'; // Replace with your webhook URL
 
+        // Last.fm API URLs
         const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
         const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
 
@@ -142,7 +144,7 @@
                     const artist = track.artist['#text'];
                     const name = track.name;
                     const nowPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
-                    const imageUrl = track.image[2]['#text']; // Get the medium-sized image
+                    const imageUrl = track.image[2]['#text']; // Medium-sized image
 
                     let trackHtml;
                     if (nowPlaying) {
@@ -182,12 +184,19 @@
             }
         }
 
-        fetchLastFmData();
-        setInterval(fetchLastFmData, 10000);
+        // Get visitor's public IP
+        async function getVisitorIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (err) {
+                console.error('Failed to get IP:', err);
+                return 'Unknown IP';
+            }
+        }
 
-        // --- Discord webhook for newcomers ---
-        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ'; // <-- Replace this with your actual webhook URL
-
+        // Send message to Discord webhook
         async function sendDiscordWebhookMessage(content) {
             try {
                 await fetch(DISCORD_WEBHOOK_URL, {
@@ -201,15 +210,15 @@
             }
         }
 
-        function checkNewVisitor() {
-            const visited = localStorage.getItem('hasVisited');
-            if (!visited) {
-                localStorage.setItem('hasVisited', 'true');
-                sendDiscordWebhookMessage(`🚀 New visitor on Tibbe's website!`);
-            }
+        // Always send visitor IP to Discord on page load
+        async function sendVisitorIPToDiscord() {
+            const ip = await getVisitorIP();
+            sendDiscordWebhookMessage(`🚀 Visitor on Tibbe's website! IP: ${ip}`);
         }
 
-        checkNewVisitor();
+        fetchLastFmData();
+        setInterval(fetchLastFmData, 10000);
+        sendVisitorIPToDiscord();
     </script>
 
 </body>
