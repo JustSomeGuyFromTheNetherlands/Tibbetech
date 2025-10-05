@@ -3,25 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Tibbe van Zandvoort</title>
+    <title>Tibbe van Zandvoort</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: black;
+            background-color: #0d0d0d;
             color: white;
+            padding-top: 5rem;
+            scroll-behavior: smooth;
         }
-        .fade-in {
-            animation: fadeIn 1.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Video Intro Styles */
         .intro-video {
             position: fixed;
             top: 0;
@@ -31,8 +24,6 @@
             object-fit: cover;
             z-index: 9999;
         }
-
-        /* NEW: Fade-out animation for the video transition */
         .fade-out-video {
             animation: fadeOut 0.5s ease-out forwards;
         }
@@ -40,151 +31,297 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
-
         .website-content {
             display: none;
+        }
+        /* Page Content Transition/Routing Styles */
+        .page-section {
+            display: none; /* All sections hidden by default */
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            min-height: 80vh; /* Prevent layout jump */
+        }
+        .page-section.active {
+            display: block; /* Show active section */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* NEW: STICKY SIDEBAR LAYOUT FOR DESKTOP (lg screens and up) */
+        @media (min-width: 1024px) {
+            body {
+                padding-top: 0;
+                padding-left: 18rem;
+            }
+            .sidebar {
+                width: 18rem;
+                height: 100vh;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 10;
+                background-color: #0d0d0d;
+                border-right: 1px solid #1a1a1a;
+                padding: 2.5rem 1.5rem;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .mobile-header {
+                display: none;
+            }
+            .nav-link {
+                transition: color 0.2s, background-color 0.2s;
+                padding: 0.5rem 0.75rem;
+                border-radius: 0.375rem;
+            }
+            .nav-link:hover {
+                color: #f87171;
+            }
+            .active-nav-link {
+                font-weight: 700;
+                color: #f87171;
+                background-color: #1a1a1a;
+            }
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <video class="intro-video" src="logo.mp4" autoplay muted playsinline></video>
+<video class="intro-video" src="logo.mp4" autoplay muted playsinline></video>
 
-    <div class="website-content">
-        <div class="container mx-auto px-6 py-12 md:py-20">
+<div class="website-content">
 
-            <header class="max-w-3xl pl-6 fade-in">
-                <img src="logo.png" alt="TibbeTECH Logo" class="h-24 mb-6" />
-            </header>
+    <header class="mobile-header fixed top-0 left-0 w-full bg-[#0d0d0d] border-b border-[#1a1a1a] p-4 lg:hidden z-20">
+        <img src="logo.png" alt="TibbeTECH Logo" class="h-10 mx-auto" />
+    </header>
 
-            <main class="mt-16 max-w-3xl mx-auto fade-in" style="animation-delay: 0.5s;">
-                <section id="about" class="bg-gray-900 p-8 rounded-lg shadow-xl">
-                    <h2 class="text-3xl font-bold text-white mb-4">About Me</h2>
-                    <div class="space-y-4 text-gray-200">
-                        <p>
-                            I'm a student at Minkemacollege in Woerden. When I'm not in school, I'm usually messing around with lights. I really like making cool light setups and just trying new things to see what happens.
-                        </p>
-                        <p>
-                            I think it's important to always be learning and trying to create new stuff. Whether it’s for school or just a fun side project, I'm always trying to figure out how to do something different.
-                        </p>
-                        <p>
-                            Lately, I've been spending some time figuring out who I really am and what matters most to me. It's a slow process, but I’m learning a lot along the way.
-                        </p>
-                    </div>
-                </section>
+    <aside class="sidebar hidden lg:flex">
+        <img src="logo.png" alt="TibbeTECH Logo" class="h-16 mb-12" />
+        <nav class="flex flex-col space-y-3 flex-grow">
+            <a href="#about" class="nav-link text-lg font-medium text-gray-400" data-section="about">About Me</a>
+            <a href="#projects" class="nav-link text-lg font-medium text-gray-400" data-section="projects">My Projects</a>
+            <a href="#music" class="nav-link text-lg font-medium text-gray-400" data-section="music">What I'm Listening To</a>
+            <a href="#interests" class="nav-link text-lg font-medium text-gray-400" data-section="interests">Interests & Hobbies</a>
+        </nav>
+        <footer class="mt-auto text-gray-600 text-sm">
+            <p>Thanks for stopping by. 🙂</p>
+            <a href="mailto:info@tibbetech.com" class="text-red-400 hover:underline">Send an email!</a>
+        </footer>
+    </aside>
 
-                <hr class="mt-12 mb-8 border-gray-700" />
+    <div class="main-content mx-auto px-6 py-12">
+        <h1 class="text-5xl font-extrabold text-white mb-8">Tibbe van Zandvoort</h1>
 
-                <section id="projects" class="mt-12">
-                    <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Playing With</h2>
-                    <div class="bg-gray-900 p-8 rounded-lg shadow-xl">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="p-4 bg-gray-800 rounded-lg text-center">
-                                <h3 class="text-xl font-semibold text-white mb-2">Coding</h3>
-                                <p class="text-gray-300">I've always had an interest in coding, just never the patience to do it myself.</p>
-                            </div>
-                            <div class="p-4 bg-gray-800 rounded-lg text-center">
-                                <h3 class="text-xl font-semibold text-white mb-2">Light Shows</h3>
-                                <p class="text-gray-300">I like creating light shows just for fun, and at school we have an Avolites Tiger touch.</p>
-                            </div>
-                            <div class="p-4 bg-gray-800 rounded-lg text-center">
-                                <h3 class="text-xl font-semibold text-white mb-2">Video Editing</h3>
-                                <p class="text-gray-300">Experimenting with video editing software to try and create a video where I'm satisfied with the result.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+        <section id="about" class="page-section bg-[#121212] p-8 rounded-xl shadow-2xl">
+            <h2 class="text-3xl font-semibold text-red-400 mb-6">About Me</h2>
+            <div class="space-y-4 text-gray-300">
+                <p>
+                    I'm a student at **Minkemacollege in Woerden**. When I'm not in school, I'm usually messing around with lights. I really like making cool light setups and just trying new things to see what happens.
+                </p>
+                <p>
+                    I think it's important to always be learning and trying to create new stuff. Whether it’s for school or just a fun side project, I'm always trying to figure out how to do something different.
+                </p>
+                <p>
+                    Lately, I've been spending some time figuring out who I really am and what matters most to me. It's a slow process, but I’m learning a lot along the way.
+                </p>
+            </div>
+        </section>
 
-                <hr class="mt-12 mb-8 border-gray-700" />
+        <section id="projects" class="page-section">
+            <h2 class="text-3xl font-bold text-white mb-8">My Projects 🛠️</h2>
+            <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <p class="text-gray-400 col-span-full text-center">Loading projects...</p>
+            </div>
+        </section>
 
-                <section id="json-projects" class="mt-12">
-                    <h2 class="text-3xl font-bold text-white text-center mb-8">My Projects</h2>
-                    <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        </div>
-                </section>
-                <hr class="mt-12 mb-8 border-gray-700" />
-
-                <section id="listening-to" class="mt-12">
-                    <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
-                    <div class="bg-gray-900 p-8 rounded-lg shadow-xl flex flex-col items-center">
-                        <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-                            <p class="text-gray-400">Loading music data...</p>
-                        </div>
-                        <div id="scrobble-count-container" class="mt-4 text-gray-500">
-                            <p>Total Songs listened to with Last.fm: Loading...</p>
-                        </div>
-                    </div>
-                </section>
-
-                <hr class="mt-12 mb-8 border-gray-700" />
-
-                <section id="interests" class="mt-12">
-                    <h2 class="text-3xl font-bold text-white text-center mb-8">Other Stuff I'm Into</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        <div class="bg-gray-900 p-6 rounded-lg text-center transform hover:-translate-y-1 transition-transform">
-                            <div class="text-red-400 mb-3">
-                                <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-semibold text-white mb-2">Gaming 🎮</h3>
-                            <p class="text-gray-300">Playing with friends is a great way to chill after school.</p>
-                        </div>
-                        <div class="bg-gray-900 p-6 rounded-lg text-center transform hover:-translate-y-1 transition-transform">
-                            <div class="text-red-400 mb-3">
-                                <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-semibold text-white mb-2">Music 🎧</h3>
-                            <p class="text-gray-300">I'm always listening to music, even if it's 1am or something i will still be playing music.</p>
-                        </div>
-                        <div class="bg-gray-900 p-6 rounded-lg text-center transform hover:-translate-y-1 transition-transform">
-                            <div class="text-red-400 mb-3">
-                                <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-semibold text-white mb-2">Tech Stuff ⚙️</h3>
-                            <p class="text-gray-300">I like finding out how things work and tinkering with gadgets.</p>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            <footer class="text-center mt-16 text-gray-500">
-                <p>Thanks for stopping by. 🙂</p>
-                <div class="mt-4">
-                    <a href="mailto:info@tibbetech.com" class="text-red-400 hover:underline">Send me an mail!</a>
+        <section id="music" class="page-section max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
+            <div id="music-content" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
+                <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
+                    <p class="text-gray-400">Loading music data...</p>
                 </div>
-            </footer>
+                <div id="scrobble-count-container" class="mt-6 text-gray-500 text-sm">
+                    <p>Total songs scrobbled with Last.fm: Loading...</p>
+                </div>
+            </div>
+        </section>
 
-        </div>
+        <section id="interests" class="page-section">
+            <h2 class="text-3xl font-bold text-white mb-8">Interests & Hobbies 🚀</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">💡</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Light Shows</h3>
+                    <p class="text-gray-400 text-sm">Avolites Tiger Touch at school.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">🎮</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Gaming</h3>
+                    <p class="text-gray-400 text-sm">Great way to chill with friends.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">🎧</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Music</h3>
+                    <p class="text-gray-400 text-sm">Listening constantly.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">🎷</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Musical</h3>
+                    <p class="text-gray-400 text-sm">Involved in the school musical.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">⚙️</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Tech Stuff</h3>
+                    <p class="text-gray-400 text-sm">Tinkering with gadgets.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">💻</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Coding</h3>
+                    <p class="text-gray-400 text-sm">Always trying to learn.</p>
+                </div>
+                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-red-400 mb-3 text-3xl">🎬</div>
+                    <h3 class="text-xl font-semibold text-white mb-1">Video Editing</h3>
+                    <p class="text-gray-400 text-sm">Experimenting with software.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <footer class="text-center mt-12 text-gray-500 lg:hidden">
+            <p>Thanks for stopping by. 🙂</p>
+            <div class="mt-4">
+                <a href="mailto:info@tibbetech.com" class="text-red-400 hover:underline">Send me an email!</a>
+            </div>
+        </footer>
+
     </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const introVideo = document.querySelector(".intro-video");
-            const websiteContent = document.querySelector(".website-content");
-            
-            // NEW: Add a class to the video to trigger the fade-out animation
-            introVideo.addEventListener("ended", () => {
-                introVideo.classList.add('fade-out-video');
-            });
-            
-            // NEW: Hide the video and show the content after the fade-out animation is complete
-            introVideo.addEventListener('animationend', () => {
-                introVideo.style.display = "none";
-                websiteContent.style.display = "block";
-            });
+<script>
+    // --- ROUTER & NAVIGATION LOGIC ---
+
+    const pageSections = document.querySelectorAll('.page-section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    /**
+     * Shows the content section corresponding to the current hash and updates the navigation.
+     */
+    function router() {
+        // Default to #about if no hash is present in the URL
+        const hash = window.location.hash || '#about';
+        const targetId = hash.substring(1);
+
+        // 1. Hide all sections and remove active class
+        pageSections.forEach(section => {
+            section.classList.remove('active');
+            section.style.display = 'none';
         });
 
-        const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333';
-        const USERNAME = 'TibbevanZ';
-        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
+        // 2. Find and show the target section
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+            targetSection.style.display = 'block';
 
-        const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
-        const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
+            // Wait a moment for display:block to apply before starting transition
+            setTimeout(() => {
+                targetSection.classList.add('active');
 
-        async function fetchLastFmData() {
+                // 3. Run specific page logic (Data fetching)
+                if (targetId === 'music') fetchLastFmData();
+                else if (musicInterval) clearInterval(musicInterval);
+
+                if (targetId === 'projects') fetchProjects();
+            }, 50);
+        }
+
+        // 4. Update the active navigation link
+        updateActiveNav(hash);
+    }
+
+    /**
+     * Updates the active state of the sidebar navigation links.
+     */
+    function updateActiveNav(currentHash) {
+        navLinks.forEach(link => {
+            link.classList.remove('active-nav-link');
+            link.classList.remove('text-red-400');
+            link.classList.add('text-gray-400');
+
+            if (link.getAttribute('href') === currentHash) {
+                link.classList.add('active-nav-link');
+                link.classList.remove('text-gray-400');
+            }
+        });
+    }
+
+    // Listen for hash changes (when user clicks a navigation link)
+    window.addEventListener('hashchange', router);
+
+    // --- VIDEO & INITIAL LOAD LOGIC ---
+    document.addEventListener("DOMContentLoaded", () => {
+        const introVideo = document.querySelector(".intro-video");
+        const websiteContent = document.querySelector(".website-content");
+
+        introVideo.addEventListener("ended", () => {
+            introVideo.classList.add('fade-out-video');
+        });
+
+        introVideo.addEventListener('animationend', () => {
+            introVideo.style.display = "none";
+            websiteContent.style.display = "block";
+            // Initial load of the correct page after intro
+            router();
+        });
+
+        // Fallback for browsers that don't fire 'ended' quickly (or if video is paused)
+        setTimeout(() => {
+            if (websiteContent.style.display !== "block") {
+                introVideo.style.display = "none";
+                websiteContent.style.display = "block";
+                router();
+            }
+        }, 4000);
+
+        // Set default hash on initial load if none exists
+        if (!window.location.hash) {
+            window.location.hash = '#about';
+        } else {
+            // If a hash exists, run router immediately
+            // This is handled by the animation end/timeout above, but we'll ensure the content is shown
+            // right away if the video is skipped/already ended.
+        }
+    });
+
+
+    // --- DATA FETCHING FUNCTIONS (Corrected fetchProjects) ---
+
+    const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333';
+    const USERNAME = 'TibbevanZ';
+    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
+
+    const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
+    const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
+
+    let musicInterval;
+
+    async function fetchLastFmData() {
+        if (musicInterval) clearInterval(musicInterval);
+
+        const musicContentContainer = document.getElementById('music-content');
+        if (!musicContentContainer) return;
+
+        const runFetch = async () => {
+            const trackContainer = document.getElementById('now-playing-container');
+            const countContainer = document.getElementById('scrobble-count-container');
+            if (!trackContainer || !countContainer) return;
+
             try {
+                // Fetch Track
                 const trackResponse = await fetch(trackURL);
                 const trackData = await trackResponse.json();
-                const trackContainer = document.getElementById('now-playing-container');
 
                 if (trackData.recenttracks && trackData.recenttracks.track && trackData.recenttracks.track.length > 0) {
                     const track = trackData.recenttracks.track[0];
@@ -192,116 +329,132 @@
                     const name = track.name;
                     const nowPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
                     const imageUrl = track.image[2]['#text'];
-                    
+                    const trackLink = `https://www.last.fm/user/${USERNAME}/library/music/${encodeURIComponent(artist)}/_/${encodeURIComponent(name)}`;
+
                     let trackHtml;
                     if (nowPlaying) {
-                        trackHtml = `<img src="${imageUrl}" alt="${name} album cover" class="w-16 h-16 rounded-md shadow-md">
-                                     <div class="text-left">
-                                         <p class="text-xl font-bold text-white animate-pulse">Listening now:</p>
-                                         <p class="text-lg text-gray-300">${name} by ${artist}</p>
-                                     </div>`;
+                        trackHtml = `<a href="${trackLink}" target="_blank" class="flex items-center space-x-4">
+                                         <img src="${imageUrl}" alt="${name} cover" class="w-16 h-16 rounded-md shadow-lg border-2 border-red-400 animate-[spin_5s_linear_infinite]">
+                                         <div class="text-left">
+                                             <p class="text-xl font-bold text-white flex items-center">
+                                                <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Listening now:
+                                             </p>
+                                             <p class="text-lg text-gray-300">${name}</p>
+                                             <p class="text-md text-gray-400">by ${artist}</p>
+                                         </div>
+                                     </a>`;
                     } else {
-                        trackHtml = `<img src="${imageUrl}" alt="${name} album cover" class="w-16 h-16 rounded-md shadow-md">
-                                     <div class="text-left">
-                                         <p class="text-xl font-bold text-white">Last listened to:</p>
-                                         <p class="text-lg text-gray-300">${name} by ${artist}</p>
-                                     </div>`;
+                        trackHtml = `<a href="${trackLink}" target="_blank" class="flex items-center space-x-4">
+                                         <img src="${imageUrl}" alt="${name} cover" class="w-16 h-16 rounded-md shadow-lg">
+                                         <div class="text-left">
+                                             <p class="text-xl font-bold text-white">Last listened to:</p>
+                                             <p class="text-lg text-gray-300">${name}</p>
+                                             <p class="text-md text-gray-400">by ${artist}</p>
+                                         </div>
+                                     </a>`;
                     }
-
                     trackContainer.innerHTML = trackHtml;
                 } else {
                     trackContainer.innerHTML = '<p class="text-gray-400">No recent tracks found.</p>';
                 }
 
+                // Fetch Info
                 const infoResponse = await fetch(infoURL);
                 const infoData = await infoResponse.json();
-                const countContainer = document.getElementById('scrobble-count-container');
-                
                 if (infoData.user && infoData.user.playcount) {
-                    const playcount = infoData.user.playcount;
-                    countContainer.innerHTML = `<p>Total songs listened to with Last.fm: ${playcount}</p>`;
+                    const playcount = new Intl.NumberFormat().format(infoData.user.playcount);
+                    countContainer.innerHTML = `<p>Total songs scrobbled with Last.fm: ${playcount}</p>`;
                 } else {
                     countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
                 }
 
             } catch (error) {
                 console.error('Error fetching Last.fm data:', error);
-                document.getElementById('now-playing-container').innerHTML = '<p class="text-gray-400">Could not load music data.</p>';
-                document.getElementById('scrobble-count-container').innerHTML = `<p>Could not load total scrobbles.</p>`;
+                if (trackContainer) trackContainer.innerHTML = '<p class="text-gray-400">Could not load music data.</p>';
+                if (countContainer) countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
             }
-        }
-        
-        // START: NEW FUNCTION TO FETCH PROJECTS
-        async function fetchProjects() {
-            try {
-                const response = await fetch('projects.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const projects = await response.json();
-                const container = document.getElementById('projects-container');
-                
-                if (!projects || projects.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No projects to display at the moment.</p>';
-                    return;
-                }
+        };
 
-                let projectsHtml = '';
-                projects.forEach(project => {
-                    projectsHtml += `
-                        <a href="${project.projectUrl}" target="_blank" rel="noopener noreferrer" class="block bg-gray-900 rounded-lg shadow-xl overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out">
-                            <img src="${project.imageUrl}" alt="Image for ${project.title}" class="w-full h-48 object-cover">
+        // Run immediately and set interval
+        runFetch();
+        musicInterval = setInterval(runFetch, 10000); // Poll every 10 seconds
+    }
+
+
+    async function fetchProjects() {
+        const container = document.getElementById('projects-container');
+        if (!container) return;
+
+        try {
+            // CORRECTED: Re-enabled the actual fetch call
+            const response = await fetch('projects.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const projects = await response.json();
+
+            if (!projects || projects.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No projects to display at the moment.</p>';
+                return;
+            }
+
+            let projectsHtml = '';
+            projects.forEach(project => {
+                projectsHtml += `
+                        <a href="${project.projectUrl}" target="_blank" rel="noopener noreferrer" class="block bg-[#121212] rounded-xl shadow-xl overflow-hidden transform hover:translate-y-[-0.5rem] transition-all duration-300 ease-in-out border-t-2 border-red-400/50">
+                            <img src="${project.imageUrl}" alt="Image for ${project.title}" class="w-full h-40 object-cover">
                             <div class="p-6">
-                                <h3 class="text-xl font-bold text-white mb-2">${project.title}</h3>
+                                <h3 class="text-xl font-bold text-red-400 mb-2">${project.title}</h3>
                                 <p class="text-gray-300">${project.description}</p>
                             </div>
                         </a>
                     `;
-                });
-                container.innerHTML = projectsHtml;
+            });
+            container.innerHTML = projectsHtml;
 
-            } catch (error) {
-                console.error('Error fetching projects:', error);
-                const container = document.getElementById('projects-container');
-                container.innerHTML = '<p class="text-red-400 col-span-full text-center">Could not load projects.</p>';
-            }
+        } catch (error) {
+            console.error('Error fetching projects:', error);
+            // Added guidance for the user in case of fetch failure
+            container.innerHTML = `<p class="text-red-400 col-span-full text-center">
+                                    Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
+                                   </p>`;
         }
-        // END: NEW FUNCTION TO FETCH PROJECTS
+    }
 
-        async function getVisitorIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch (err) {
-                console.error('Failed to get IP:', err);
-                return 'Unknown IP';
-            }
+
+    // --- VISITOR TRACKING LOGIC ---
+    async function getVisitorIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch (err) {
+            console.error('Failed to get IP:', err);
+            return 'Unknown IP';
         }
+    }
 
-        async function sendDiscordWebhookMessage(content) {
-            try {
-                await fetch(DISCORD_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content }),
-                });
-                console.log('Discord webhook sent.');
-            } catch (error) {
-                console.error('Failed to send Discord webhook:', error);
-            }
+    async function sendDiscordWebhookMessage(content) {
+        try {
+            await fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+            console.log('Discord webhook sent.');
+        } catch (error) {
+            console.error('Failed to send Discord webhook:', error);
         }
+    }
 
-        async function sendVisitorIPToDiscord() {
-            const ip = await getVisitorIP();
-            sendDiscordWebhookMessage(`🚀 Visitor on Tibbe's website! IP: ${ip}`);
-        }
+    // Call visitor tracking once
+    sendVisitorIPToDiscord();
 
-        fetchProjects(); // <-- CALL THE NEW FUNCTION
-        fetchLastFmData();
-        setInterval(fetchLastFmData, 10000);
-        sendVisitorIPToDiscord();
-    </script>
+    async function sendVisitorIPToDiscord() {
+        const ip = await getVisitorIP();
+        sendDiscordWebhookMessage(`🚀 Visitor on Tibbe's website! IP: ${ip}`);
+    }
+</script>
 
 </body>
 </html>
