@@ -1,14 +1,14 @@
 [
   {
-    "title": "QuickQue",
+    "title": "QuickCue",
     "description": "An quick and easy website to create cuelists for stage related projects.",
     "imageUrl": "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=600",
-    "projectUrl": "https://quickque.tibbetech.com"
+    "projectUrl": "https://quickCue.tibbetech.com"
   },
   {
     "title": "Proxy Api",
     "description": "A Spotify Proxy Api so that my projects won't use as much spotify quota as it used to do before. Also disables the need to authenticate to see what im playing.",
-    "imageUrl": "https://images.unsplash.com/photo-1574717024633-596a588145a3?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=600",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1200/0*QvRphF60YJbucc7B.png&crop=entropy&cs=srgb&w=600",
     "projectUrl": "#"
   },
   {
