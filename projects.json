@@ -8,12 +8,30 @@
   {
     "title": "Proxy Api",
     "description": "A Spotify Proxy Api so that my projects won't use as much spotify quota as it used to do before. Also disables the need to authenticate to see what im playing.",
-    "imageUrl": "https://miro.medium.com/v2/resize:fit:1200/0*QvRphF60YJbucc7B.png&crop=entropy&cs=srgb&w=600",
-    "projectUrl": "#"
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1200/0*QvRphF60YJbucc7B.png",
+    "projectUrl": " http://31.97.117.247:8888/listeningto"
   },
   {
     "title": "Personal Website",
     "description": "You're looking at it! I built this site to learn more about HTML, CSS, and JavaScript, and to have a place to share my interests.",
+    "imageUrl": "logo.png",
+    "projectUrl": "https://tibbetech.com"
+  },
+  {
+    "title": "Arduino to Spotify via serial",
+    "description": "Utilises Spotify Api via Proxy Api to show song data onto an LCD + OLED screen",
+    "imageUrl": "Arduino.jpg",
+    "projectUrl": "https://tibbetech.com"
+  },
+  {
+    "title": "MinkemaLive 2025",
+    "description": "Helping with setting up the stage and creating an amazing event",
+    "imageUrl": "https://scontent-ams4-1.xx.fbcdn.net/v/t39.30808-6/487824139_1186434662861526_3653236974479081173_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_ohc=cdTfgJlhHoUQ7kNvwH-w0sM&_nc_oc=Adnx1eJVbFKpu9prSCiOcuuJcffLsMTIBeOaIMdk3SednqvY2dW9P8o-aBaSuGeXHy6Pu93pxEhmNOrhQ1TQqNzv&_nc_zt=23&_nc_ht=scontent-ams4-1.xx&_nc_gid=ScG7i0UubfXGOzx9p-JFzg&oh=00_AfdJAkm-VPDtdRyCwlmGQRoKEmOKoM6KJq23ORqi6r72GQ&oe=68E8AB08",
+    "projectUrl": "https://www.facebook.com/tibbe.vanzandvoort/posts/pfbid02sJRfJcCksGxK9uuuCnmfhSAxGC7ptrn8Ta89CBXcCzNucU8MZzHCAF7qPdhcyjrjl"
+  },
+  {
+    "title": "An Upcoming Project",
+    "description": "Brugklasfeest 2025",
     "imageUrl": "",
     "projectUrl": "#"
   }
