@@ -138,12 +138,29 @@
 
         <section id="music" class="page-section max-w-4xl mx-auto">
             <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
-            <div id="music-content" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
-                <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                    <p class="text-gray-400">Loading music data...</p>
+            <div class="space-y-8">
+                <div id="now-playing-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
+                    <h3 class="text-2xl font-semibold text-red-400 mb-4">Currently / Recently Played</h3>
+                    <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
+                        <p class="text-gray-400">Loading music data...</p>
+                    </div>
+                    <div id="scrobble-count-container" class="mt-6 text-gray-500 text-sm">
+                        <p>Total songs scrobbled with Last.fm: Loading...</p>
+                    </div>
                 </div>
-                <div id="scrobble-count-container" class="mt-6 text-gray-500 text-sm">
-                    <p>Total songs scrobbled with Last.fm: Loading...</p>
+
+                <div id="top-artists-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl border border-red-400/30">
+                    <h3 class="text-2xl font-semibold text-red-400 mb-6">Top Artists (Last 7 Days)</h3>
+                    <div id="top-artists-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-gray-300">
+                        <p class="text-gray-400 col-span-full">Loading top artists...</p>
+                    </div>
+                </div>
+
+                <div id="top-albums-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl border border-red-400/30">
+                    <h3 class="text-2xl font-semibold text-red-400 mb-6">Top Albums (Last 7 Days)</h3>
+                    <div id="top-albums-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                        <p class="text-gray-400 col-span-full">Loading top albums...</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -302,23 +319,32 @@
     const USERNAME = 'TibbevanZ';
     const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
 
+    // Last.fm URLs
     const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
     const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
+    const topArtistsURL = `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=6&period=7day`;
+    const topAlbumsURL = `https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=5&period=7day`;
 
     let musicInterval;
 
     async function fetchLastFmData() {
         if (musicInterval) clearInterval(musicInterval);
 
-        const musicContentContainer = document.getElementById('music-content');
-        if (!musicContentContainer) return;
-
         const runFetch = async () => {
             const trackContainer = document.getElementById('now-playing-container');
             const countContainer = document.getElementById('scrobble-count-container');
-            if (!trackContainer || !countContainer) return;
+            const artistsContainer = document.getElementById('top-artists-container');
+            const albumsContainer = document.getElementById('top-albums-container');
+
+            // Safety check for all containers
+            if (!trackContainer || !countContainer || !artistsContainer || !albumsContainer) return;
+
+            // Helper Function for formatting scrobbles
+            const formatScrobbles = (count) => new Intl.NumberFormat().format(count);
 
             try {
+                // --- 1. Fetch Track & Info (Existing Logic) ---
+
                 // Fetch Track
                 const trackResponse = await fetch(trackURL);
                 const trackData = await trackResponse.json();
@@ -362,16 +388,63 @@
                 const infoResponse = await fetch(infoURL);
                 const infoData = await infoResponse.json();
                 if (infoData.user && infoData.user.playcount) {
-                    const playcount = new Intl.NumberFormat().format(infoData.user.playcount);
+                    const playcount = formatScrobbles(infoData.user.playcount);
                     countContainer.innerHTML = `<p>Total songs scrobbled with Last.fm: ${playcount}</p>`;
                 } else {
                     countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
+                }
+
+                // --- 2. NEW: Fetch Top Artists ---
+                const artistsResponse = await fetch(topArtistsURL);
+                const artistsData = await artistsResponse.json();
+
+                if (artistsData.topartists && artistsData.topartists.artist && artistsData.topartists.artist.length > 0) {
+                    let artistsHtml = artistsData.topartists.artist.map(artist => {
+                        const artistName = artist.name;
+                        const playcount = formatScrobbles(artist.playcount);
+                        const artistLink = artist.url;
+
+                        return `<a href="${artistLink}" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-medium text-white truncate">${artistName}</p>
+                                    <p class="text-sm text-red-400">${playcount} scrobbles</p>
+                                </a>`;
+                    }).join('');
+                    artistsContainer.innerHTML = artistsHtml;
+                } else {
+                    artistsContainer.innerHTML = '<p class="text-gray-400 col-span-full">No top artists found for the last 7 days.</p>';
+                }
+
+                // --- 3. NEW: Fetch Top Albums ---
+                const albumsResponse = await fetch(topAlbumsURL);
+                const albumsData = await albumsResponse.json();
+
+                if (albumsData.topalbums && albumsData.topalbums.album && albumsData.topalbums.album.length > 0) {
+                    let albumsHtml = albumsData.topalbums.album.map(album => {
+                        const albumName = album.name;
+                        const artistName = album.artist.name;
+                        const playcount = formatScrobbles(album.playcount);
+                        // Using large image (index 2)
+                        const imageUrl = album.image.find(img => img.size === 'large')['#text'] || '';
+                        const albumLink = album.url;
+
+                        return `<a href="${albumLink}" target="_blank" rel="noopener noreferrer" class="group block text-center">
+                                    <img src="${imageUrl}" alt="${albumName} cover" class="w-full aspect-square object-cover rounded-md shadow-lg group-hover:shadow-red-400/50 transition-shadow">
+                                    <p class="mt-2 text-sm font-semibold text-white truncate">${albumName}</p>
+                                    <p class="text-xs text-gray-400 truncate">${artistName}</p>
+                                    <p class="text-xs text-red-400">${playcount} scrobbles</p>
+                                </a>`;
+                    }).join('');
+                    albumsContainer.innerHTML = albumsHtml;
+                } else {
+                    albumsContainer.innerHTML = '<p class="text-gray-400 col-span-full">No top albums found for the last 7 days.</p>';
                 }
 
             } catch (error) {
                 console.error('Error fetching Last.fm data:', error);
                 if (trackContainer) trackContainer.innerHTML = '<p class="text-gray-400">Could not load music data.</p>';
                 if (countContainer) countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
+                if (artistsContainer) artistsContainer.innerHTML = `<p class="text-gray-400 col-span-full">Could not load top artists.</p>`;
+                if (albumsContainer) albumsContainer.innerHTML = `<p class="text-gray-400 col-span-full">Could not load top albums.</p>`;
             }
         };
 
