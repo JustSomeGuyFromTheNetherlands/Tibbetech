@@ -231,7 +231,6 @@
                 targetSection.classList.add('active');
 
                 // 3. Run specific page logic (Data fetching)
-                // MODIFIED: Calling fetchSpotifyData instead of fetchLastFmData
                 if (targetId === 'music') fetchSpotifyData();
                 else if (musicInterval) clearInterval(musicInterval);
 
@@ -296,22 +295,17 @@
 
     // --- DATA FETCHING FUNCTIONS (MODIFIED FOR SPOTIFY API) ---
 
-    // REMOVED Last.fm API Key and User Name
     const SPOTIFY_API_URL = 'https://spotitech.tibbetech.com/listeningto';
     const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
 
     let musicInterval;
 
-    // REPLACED fetchLastFmData with fetchSpotifyData
     async function fetchSpotifyData() {
         // Clear any existing interval to prevent overlap
         if (musicInterval) clearInterval(musicInterval);
 
         const runFetch = async () => {
             const trackContainer = document.getElementById('now-playing-container');
-            // NOTE: Removed references to 'scrobble-count-container', 'top-artists-container', 'top-albums-container'
-            // as this new API only provides the current track.
-
             if (!trackContainer) return;
 
             try {
@@ -321,43 +315,56 @@
                 const { playing, title, artist, album, albumArt, song_url, progress, duration, remaining, next } = data;
 
                 if (playing) {
+                    // --- NEW LOGIC FOR MANUAL CD/VINYL ---
+                    // Determine if the track is manual (CD/Vinyl) based on server response
+                    const isManual = (duration === "" && remaining === "" && next === null);
+                    const sourceText = isManual ? "(CD/Vinyl)" : "(Spotify)";
+                    const nextText = isManual ? "Enjoy the music!" : `Next up: ${next}`;
+                    
+                    // The progress bar is only shown for Spotify tracks (where duration is not empty)
+                    const progressBarHtml = isManual ? 
+                        `<p class="text-sm text-gray-500 mt-1">Manual playback. ${nextText}</p>` : 
+                        `
+                            <div class="w-full h-2 bg-[#1a1a1a] rounded-full mt-1 overflow-hidden">
+                                ${(() => {
+                                    const timeToSeconds = (t) => {
+                                        const parts = t.split(':');
+                                        return parts.length === 2 ? (parseInt(parts[0]) * 60) + parseInt(parts[1]) : 0;
+                                    };
+                                    const currentSeconds = timeToSeconds(progress);
+                                    const totalSeconds = timeToSeconds(duration);
+                                    const progressPercent = totalSeconds > 0 ? (currentSeconds / totalSeconds) * 100 : 0;
+                                    return `<div class="h-full bg-red-400" style="width: ${progressPercent}%;"></div>`;
+                                })()}
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">${progress} / ${duration} (${nextText})</p>
+                        `;
+
                     // Currently Playing logic
                     const trackHtml = `
                         <a href="${song_url}" target="_blank" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg border-2 border-red-400 ${playing ? 'animate-[spin_5s_linear_infinite]' : ''}">
+                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg border-2 border-red-400 ${!isManual ? 'animate-[spin_5s_linear_infinite]' : ''}">
                             <div class="text-center md:text-left flex-grow">
                                 <p class="text-xl font-bold text-white flex items-center justify-center md:justify-start">
-                                    <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Currently Listening:
+                                    <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Currently Listening ${sourceText}:
                                 </p>
                                 <p class="text-2xl text-red-400 font-extrabold truncate">${title}</p>
                                 <p class="text-lg text-gray-300 mb-2">by ${artist} (from ${album})</p>
-                                <div class="w-full h-2 bg-[#1a1a1a] rounded-full mt-1 overflow-hidden">
-                                    ${(() => {
-                                        const timeToSeconds = (t) => {
-                                            const parts = t.split(':');
-                                            return parts.length === 2 ? (parseInt(parts[0]) * 60) + parseInt(parts[1]) : 0;
-                                        };
-                                        const currentSeconds = timeToSeconds(progress);
-                                        const totalSeconds = timeToSeconds(duration);
-                                        const progressPercent = totalSeconds > 0 ? (currentSeconds / totalSeconds) * 100 : 0;
-                                        return `<div class="h-full bg-red-400" style="width: ${progressPercent}%;"></div>`;
-                                    })()}
-                                </div>
-                                <p class="text-sm text-gray-500 mt-1">${progress} / ${duration} (Next up: ${next})</p>
+                                ${progressBarHtml}
                             </div>
                         </a>
                     `;
                     trackContainer.innerHTML = trackHtml;
                 } else {
-                    // Not Playing / Recently Played logic
+                    // Not Playing / Recently Played logic (assuming the API still returns the last track on stop)
                     const recentTrackHtml = `
                         <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg">
+                            <img src="${albumArt || 'placeholder.png'}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg">
                             <div class="text-center md:text-left">
                                 <p class="text-xl font-bold text-white">Not currently playing.</p>
                                 <p class="text-lg text-gray-300">Last played track:</p>
-                                <p class="text-2xl text-red-400 font-extrabold truncate">${title}</p>
-                                <p class="text-lg text-gray-300">by ${artist}</p>
+                                <p class="text-2xl text-red-400 font-extrabold truncate">${title || 'N/A'}</p>
+                                <p class="text-lg text-gray-300">by ${artist || 'Unknown'}</p>
                             </div>
                         </div>
                     `;
@@ -412,8 +419,8 @@
             console.error('Error fetching projects:', error);
             // Added guidance for the user in case of fetch failure
             container.innerHTML = `<p class="text-red-400 col-span-full text-center">
-                                     Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
-                                    </p>`;
+                                            Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
+                                        </p>`;
         }
     }
 
