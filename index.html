@@ -138,30 +138,14 @@
 
         <section id="music" class="page-section max-w-4xl mx-auto">
             <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
-            <div class="space-y-8">
-                <div id="now-playing-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
-                    <h3 class="text-2xl font-semibold text-red-400 mb-4">Currently / Recently Played</h3>
-                    <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                        <p class="text-gray-400">Loading music data...</p>
-                    </div>
-                    <div id="scrobble-count-container" class="mt-6 text-gray-500 text-sm">
-                        <p>Total songs scrobbled with Last.fm: Loading...</p>
-                    </div>
+            <div id="now-playing-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
+                <h3 class="text-2xl font-semibold text-red-400 mb-4">Spotify Status</h3>
+                <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
+                    <p class="text-gray-400">Loading music data...</p>
                 </div>
-
-                <div id="top-artists-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl border border-red-400/30">
-                    <h3 class="text-2xl font-semibold text-red-400 mb-6">Top Artists (Last 7 Days)</h3>
-                    <div id="top-artists-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-gray-300">
-                        <p class="text-gray-400 col-span-full">Loading top artists...</p>
-                    </div>
                 </div>
-
-                <div id="top-albums-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl border border-red-400/30">
-                    <h3 class="text-2xl font-semibold text-red-400 mb-6">Top Albums (Last 7 Days)</h3>
-                    <div id="top-albums-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-                        <p class="text-gray-400 col-span-full">Loading top albums...</p>
-                    </div>
-                </div>
+            <div class="mt-8">
+                <p class="text-center text-gray-500">More stats coming soon...</p>
             </div>
         </section>
 
@@ -247,7 +231,8 @@
                 targetSection.classList.add('active');
 
                 // 3. Run specific page logic (Data fetching)
-                if (targetId === 'music') fetchLastFmData();
+                // MODIFIED: Calling fetchSpotifyData instead of fetchLastFmData
+                if (targetId === 'music') fetchSpotifyData();
                 else if (musicInterval) clearInterval(musicInterval);
 
                 if (targetId === 'projects') fetchProjects();
@@ -305,152 +290,90 @@
         // Set default hash on initial load if none exists
         if (!window.location.hash) {
             window.location.hash = '#about';
-        } else {
-            // If a hash exists, run router immediately
-            // This is handled by the animation end/timeout above, but we'll ensure the content is shown
-            // right away if the video is skipped/already ended.
         }
     });
 
 
-    // --- DATA FETCHING FUNCTIONS (Corrected fetchProjects) ---
+    // --- DATA FETCHING FUNCTIONS (MODIFIED FOR SPOTIFY API) ---
 
-    const API_KEY = 'cb5a6898ada36212ac6de37f6b6ca333';
-    const USERNAME = 'TibbevanZ';
+    // REMOVED Last.fm API Key and User Name
+    const SPOTIFY_API_URL = 'https://spotitech.tibbetech.com/listeningto';
     const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
-
-    // Last.fm URLs
-    const trackURL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
-    const infoURL = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${USERNAME}&api_key=${API_KEY}&format=json`;
-    const topArtistsURL = `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=6&period=7day`;
-    const topAlbumsURL = `https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=5&period=7day`;
 
     let musicInterval;
 
-    async function fetchLastFmData() {
+    // REPLACED fetchLastFmData with fetchSpotifyData
+    async function fetchSpotifyData() {
+        // Clear any existing interval to prevent overlap
         if (musicInterval) clearInterval(musicInterval);
 
         const runFetch = async () => {
             const trackContainer = document.getElementById('now-playing-container');
-            const countContainer = document.getElementById('scrobble-count-container');
-            const artistsContainer = document.getElementById('top-artists-container');
-            const albumsContainer = document.getElementById('top-albums-container');
+            // NOTE: Removed references to 'scrobble-count-container', 'top-artists-container', 'top-albums-container'
+            // as this new API only provides the current track.
 
-            // Safety check for all containers
-            if (!trackContainer || !countContainer || !artistsContainer || !albumsContainer) return;
-
-            // Helper Function for formatting scrobbles
-            const formatScrobbles = (count) => new Intl.NumberFormat().format(count);
+            if (!trackContainer) return;
 
             try {
-                // --- 1. Fetch Track & Info (Existing Logic) ---
+                const response = await fetch(SPOTIFY_API_URL);
+                const data = await response.json();
 
-                // Fetch Track
-                const trackResponse = await fetch(trackURL);
-                const trackData = await trackResponse.json();
+                const { playing, title, artist, album, albumArt, song_url, progress, duration, remaining, next } = data;
 
-                if (trackData.recenttracks && trackData.recenttracks.track && trackData.recenttracks.track.length > 0) {
-                    const track = trackData.recenttracks.track[0];
-                    const artist = track.artist['#text'];
-                    const name = track.name;
-                    const nowPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
-                    const imageUrl = track.image[2]['#text'];
-                    const trackLink = `https://www.last.fm/user/${USERNAME}/library/music/${encodeURIComponent(artist)}/_/${encodeURIComponent(name)}`;
-
-                    let trackHtml;
-                    if (nowPlaying) {
-                        trackHtml = `<a href="${trackLink}" target="_blank" class="flex items-center space-x-4">
-                                         <img src="${imageUrl}" alt="${name} cover" class="w-16 h-16 rounded-md shadow-lg border-2 border-red-400 animate-[spin_5s_linear_infinite]">
-                                         <div class="text-left">
-                                             <p class="text-xl font-bold text-white flex items-center">
-                                                <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Listening now:
-                                             </p>
-                                             <p class="text-lg text-gray-300">${name}</p>
-                                             <p class="text-md text-gray-400">by ${artist}</p>
-                                         </div>
-                                     </a>`;
-                    } else {
-                        trackHtml = `<a href="${trackLink}" target="_blank" class="flex items-center space-x-4">
-                                         <img src="${imageUrl}" alt="${name} cover" class="w-16 h-16 rounded-md shadow-lg">
-                                         <div class="text-left">
-                                             <p class="text-xl font-bold text-white">Last listened to:</p>
-                                             <p class="text-lg text-gray-300">${name}</p>
-                                             <p class="text-md text-gray-400">by ${artist}</p>
-                                         </div>
-                                     </a>`;
-                    }
+                if (playing) {
+                    // Currently Playing logic
+                    const trackHtml = `
+                        <a href="${song_url}" target="_blank" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
+                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg border-2 border-red-400 ${playing ? 'animate-[spin_5s_linear_infinite]' : ''}">
+                            <div class="text-center md:text-left flex-grow">
+                                <p class="text-xl font-bold text-white flex items-center justify-center md:justify-start">
+                                    <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Currently Listening:
+                                </p>
+                                <p class="text-2xl text-red-400 font-extrabold truncate">${title}</p>
+                                <p class="text-lg text-gray-300 mb-2">by ${artist} (from ${album})</p>
+                                <div class="w-full h-2 bg-[#1a1a1a] rounded-full mt-1 overflow-hidden">
+                                    ${(() => {
+                                        const timeToSeconds = (t) => {
+                                            const parts = t.split(':');
+                                            return parts.length === 2 ? (parseInt(parts[0]) * 60) + parseInt(parts[1]) : 0;
+                                        };
+                                        const currentSeconds = timeToSeconds(progress);
+                                        const totalSeconds = timeToSeconds(duration);
+                                        const progressPercent = totalSeconds > 0 ? (currentSeconds / totalSeconds) * 100 : 0;
+                                        return `<div class="h-full bg-red-400" style="width: ${progressPercent}%;"></div>`;
+                                    })()}
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">${progress} / ${duration} (Next up: ${next})</p>
+                            </div>
+                        </a>
+                    `;
                     trackContainer.innerHTML = trackHtml;
                 } else {
-                    trackContainer.innerHTML = '<p class="text-gray-400">No recent tracks found.</p>';
+                    // Not Playing / Recently Played logic
+                    const recentTrackHtml = `
+                        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
+                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg">
+                            <div class="text-center md:text-left">
+                                <p class="text-xl font-bold text-white">Not currently playing.</p>
+                                <p class="text-lg text-gray-300">Last played track:</p>
+                                <p class="text-2xl text-red-400 font-extrabold truncate">${title}</p>
+                                <p class="text-lg text-gray-300">by ${artist}</p>
+                            </div>
+                        </div>
+                    `;
+                    trackContainer.innerHTML = recentTrackHtml;
                 }
 
-                // Fetch Info
-                const infoResponse = await fetch(infoURL);
-                const infoData = await infoResponse.json();
-                if (infoData.user && infoData.user.playcount) {
-                    const playcount = formatScrobbles(infoData.user.playcount);
-                    countContainer.innerHTML = `<p>Total songs scrobbled with Last.fm: ${playcount}</p>`;
-                } else {
-                    countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
-                }
-
-                // --- 2. NEW: Fetch Top Artists ---
-                const artistsResponse = await fetch(topArtistsURL);
-                const artistsData = await artistsResponse.json();
-
-                if (artistsData.topartists && artistsData.topartists.artist && artistsData.topartists.artist.length > 0) {
-                    let artistsHtml = artistsData.topartists.artist.map(artist => {
-                        const artistName = artist.name;
-                        const playcount = formatScrobbles(artist.playcount);
-                        const artistLink = artist.url;
-
-                        return `<a href="${artistLink}" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-lg hover:bg-[#1a1a1a] transition-colors">
-                                    <p class="font-medium text-white truncate">${artistName}</p>
-                                    <p class="text-sm text-red-400">${playcount} scrobbles</p>
-                                </a>`;
-                    }).join('');
-                    artistsContainer.innerHTML = artistsHtml;
-                } else {
-                    artistsContainer.innerHTML = '<p class="text-gray-400 col-span-full">No top artists found for the last 7 days.</p>';
-                }
-
-                // --- 3. NEW: Fetch Top Albums ---
-                const albumsResponse = await fetch(topAlbumsURL);
-                const albumsData = await albumsResponse.json();
-
-                if (albumsData.topalbums && albumsData.topalbums.album && albumsData.topalbums.album.length > 0) {
-                    let albumsHtml = albumsData.topalbums.album.map(album => {
-                        const albumName = album.name;
-                        const artistName = album.artist.name;
-                        const playcount = formatScrobbles(album.playcount);
-                        // Using large image (index 2)
-                        const imageUrl = album.image.find(img => img.size === 'large')['#text'] || '';
-                        const albumLink = album.url;
-
-                        return `<a href="${albumLink}" target="_blank" rel="noopener noreferrer" class="group block text-center">
-                                    <img src="${imageUrl}" alt="${albumName} cover" class="w-full aspect-square object-cover rounded-md shadow-lg group-hover:shadow-red-400/50 transition-shadow">
-                                    <p class="mt-2 text-sm font-semibold text-white truncate">${albumName}</p>
-                                    <p class="text-xs text-gray-400 truncate">${artistName}</p>
-                                    <p class="text-xs text-red-400">${playcount} scrobbles</p>
-                                </a>`;
-                    }).join('');
-                    albumsContainer.innerHTML = albumsHtml;
-                } else {
-                    albumsContainer.innerHTML = '<p class="text-gray-400 col-span-full">No top albums found for the last 7 days.</p>';
-                }
 
             } catch (error) {
-                console.error('Error fetching Last.fm data:', error);
-                if (trackContainer) trackContainer.innerHTML = '<p class="text-gray-400">Could not load music data.</p>';
-                if (countContainer) countContainer.innerHTML = `<p>Could not load total scrobbles.</p>`;
-                if (artistsContainer) artistsContainer.innerHTML = `<p class="text-gray-400 col-span-full">Could not load top artists.</p>`;
-                if (albumsContainer) albumsContainer.innerHTML = `<p class="text-gray-400 col-span-full">Could not load top albums.</p>`;
+                console.error('Error fetching Spotify data:', error);
+                trackContainer.innerHTML = '<p class="text-gray-400">Could not load current music data. API might be offline.</p>';
             }
         };
 
         // Run immediately and set interval
         runFetch();
-        musicInterval = setInterval(runFetch, 10000); // Poll every 10 seconds
+        musicInterval = setInterval(runFetch, 5000); // Poll every 5 seconds for a dynamic "Now Playing" status
     }
 
 
@@ -489,8 +412,8 @@
             console.error('Error fetching projects:', error);
             // Added guidance for the user in case of fetch failure
             container.innerHTML = `<p class="text-red-400 col-span-full text-center">
-                                    Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
-                                   </p>`;
+                                     Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
+                                    </p>`;
         }
     }
 
