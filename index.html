@@ -3,458 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tibbe van Zandvoort</title>
+    <title>Now Playing - TibbeTech (Fully Dynamic Display)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/color-thief-browser@2.0.2/js/color-thief.min.js"></script>
 
     <style>
-        /* --- Base Styles --- */
+        /* --- Google Font Import --- */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+
+        /* --- Variable Definitions & Body Styling --- */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d0d0d;
-            color: white;
-            padding-top: 5rem;
-            scroll-behavior: smooth;
+            background-color: var(--dynamic-bg-color, #030712); /* Use a dynamic CSS variable as fallback */
+            background-image: radial-gradient(ellipse 80% 80% at 50% -20%,rgba(120,119,198,0.3),hsla(0,0%,100%,0));
+            overflow: hidden;
+            transition: background-color 1.5s ease-in-out; /* Added transition for smooth color change */
         }
 
-        /* --- Intro Video/Load Styles (Unchanged) --- */
-        .intro-video {
+        /* --- Static Animated Aurora Background (The primary color change target) --- */
+        body::before, body::after {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: 9999;
-        }
-        .fade-out-video {
-            animation: fadeOut 0.5s ease-out forwards;
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        .website-content {
-            display: none;
+            z-index: -1;
+            opacity: 0.5;
+            background-size: 400% 400%;
+            transition: background 1.5s ease-in-out;
+            filter: blur(100px);
         }
 
-        /* --- Page Content Transition/Routing Styles (Unchanged) --- */
-        .page-section {
-            display: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-            min-height: 80vh;
-        }
-        .page-section.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
+        body::before {
+            background-image: var(--aurora-gradient-1, linear-gradient(315deg, #f97316 0%, #7c3aed 74%));
+            animation: AuroraAnimation 20s ease infinite;
         }
 
-        /* --- DESKTOP SIDEBAR LAYOUT (Unchanged) --- */
-        @media (min-width: 1024px) {
-            body {
-                padding-top: 0;
-                padding-left: 18rem;
-            }
-            .sidebar {
-                width: 18rem;
-                height: 100vh;
-                position: fixed;
-                top: 0;
-                left: 0;
-                z-index: 10;
-                background-color: #0d0d0d;
-                border-right: 1px solid #1a1a1a;
-                padding: 2.5rem 1.5rem;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .mobile-header {
-                display: none;
-            }
-            .nav-link {
-                transition: color 0.2s, background-color 0.2s;
-                padding: 0.5rem 0.75rem;
-                border-radius: 0.375rem;
-            }
-            .nav-link:hover {
-                color: #f87171;
-            }
-            .active-nav-link {
-                font-weight: 700;
-                color: #f87171;
-                background-color: #1a1a1a;
-            }
+        body::after {
+            background-image: var(--aurora-gradient-2, linear-gradient(45deg, #ef4444 0%, #3b82f6 74%));
+            animation: AuroraAnimation 25s ease infinite reverse;
         }
 
-        /* --- Custom Styles for Dynamic Music Section --- */
-        .music-track-info {
-            /* Ensures the content within the music section is centered and styled */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        @keyframes AuroraAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Full-Page Content Wrapper (Unchanged) --- */
+        .now-playing-content {
+            padding: 2rem;
             width: 100%;
+            max-width: 1400px;
+            margin: auto;
         }
-        .album-art-spin {
-            /* Re-added the simple spin animation for non-manual tracks */
-            animation: spin 5s linear infinite;
+
+        /* --- Progress Bar Enhancement (Uses dynamic colors) --- */
+        .progress-bar-fill {
+            box-shadow: 0 0 10px 2px var(--progress-glow-color, #f97316);
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        /* --- "CD/VINYL" Tag Refinement (Unchanged) --- */
+        .manual-play-tag {
+            background: linear-gradient(45deg, #ec4899, #d946ef);
+            transform: rotate(0deg);
+            font-weight: 800;
+            font-size: 0.875rem;
+            padding: 0.35rem 1rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            animation: none;
+            backdrop-filter: blur(5px);
         }
+
+        /* --- Dynamic Text Glow Enhancement --- */
+        .text-glow {
+            text-shadow:
+                    0 0 15px rgba(0, 0, 0, 0.9),
+                    0 0 30px var(--text-glow-color, rgba(255, 255, 255, 0.4));
+        }
+
+        /* --- Dynamic Album Art Glow --- */
+        .album-art-glow {
+            box-shadow: 0 0 50px 10px var(--album-art-glow-color, rgba(249, 115, 22, 0.7));
+        }
+
     </style>
 </head>
-<body class="antialiased">
+<body class="min-h-screen">
 
-<video class="intro-video" src="logo.mp4" autoplay muted playsinline></video>
-
-<div class="website-content">
-
-    <header class="mobile-header fixed top-0 left-0 w-full bg-[#0d0d0d] border-b border-[#1a1a1a] p-4 lg:hidden z-20">
-        <img src="logo.png" alt="TibbeTECH Logo" class="h-10 mx-auto" />
-    </header>
-
-    <aside class="sidebar hidden lg:flex">
-        <img src="logo.png" alt="TibbeTECH Logo" class="h-16 mb-12" />
-        <nav class="flex flex-col space-y-3 flex-grow">
-            <a href="#about" class="nav-link text-lg font-medium text-gray-400" data-section="about">About Me</a>
-            <a href="#projects" class="nav-link text-lg font-medium text-gray-400" data-section="projects">My Projects</a>
-            <a href="#music" class="nav-link text-lg font-medium text-gray-400" data-section="music">What I'm Listening To</a>
-            <a href="#interests" class="nav-link text-lg font-medium text-gray-400" data-section="interests">Interests & Hobbies</a>
-        </nav>
-        <footer class="mt-auto text-gray-600 text-sm">
-            <p>Thanks for stopping by. 🙂</p>
-            <a href="mailto:info@tibbetech.com" class="text-red-400 hover:underline">Send an email!</a>
-        </footer>
-    </aside>
-
-    <div class="main-content mx-auto px-6 py-12">
-        <h1 class="text-5xl font-extrabold text-white mb-8">Tibbe van Zandvoort</h1>
-
-        <section id="about" class="page-section bg-[#121212] p-8 rounded-xl shadow-2xl">
-            <h2 class="text-3xl font-semibold text-red-400 mb-6">About Me</h2>
-            <div class="space-y-4 text-gray-300">
-                <p>
-                    I'm a student at **Minkemacollege in Woerden**. When I'm not in school, I'm usually messing around with lights. I really like making cool light setups and just trying new things to see what happens.
-                </p>
-                <p>
-                    I think it's important to always be learning and trying to create new stuff. Whether it’s for school or just a fun side project, I'm always trying to figure out how to do something different.
-                </p>
-                <p>
-                    Lately, I've been spending some time figuring out who I really am and what matters most to me. It's a slow process, but I’m learning a lot along the way.
-                </p>
-            </div>
-        </section>
-
-        <section id="projects" class="page-section">
-            <h2 class="text-3xl font-bold text-white mb-8">My Projects 🛠️</h2>
-            <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <p class="text-gray-400 col-span-full text-center">Loading projects...</p>
-            </div>
-        </section>
-
-        <section id="music" class="page-section max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
-            <div id="now-playing-root" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30 min-h-[300px]">
-                <p class="text-gray-400">Initializing music player...</p>
-            </div>
-            <div class="mt-8">
-                <p class="text-center text-gray-500">More stats coming soon...</p>
-            </div>
-        </section>
-
-        <section id="interests" class="page-section">
-            <h2 class="text-3xl font-bold text-white mb-8">Interests & Hobbies 🚀</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">💡</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Light Shows</h3>
-                    <p class="text-gray-400 text-sm">Avolites Tiger Touch at school.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">🎮</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Gaming</h3>
-                    <p class="text-gray-400 text-sm">Great way to chill with friends.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">🎧</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Music</h3>
-                    <p class="text-gray-400 text-sm">Listening constantly.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">🎷</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Musical</h3>
-                    <p class="text-gray-400 text-sm">Involved in the school musical.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">⚙️</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Tech Stuff</h3>
-                    <p class="text-gray-400 text-sm">Tinkering with gadgets.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">💻</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Coding</h3>
-                    <p class="text-gray-400 text-sm">Always trying to learn.</p>
-                </div>
-                <div class="bg-[#121212] p-6 rounded-lg text-center transform hover:scale-105 transition-transform duration-300">
-                    <div class="text-red-400 mb-3 text-3xl">🎬</div>
-                    <h3 class="text-xl font-semibold text-white mb-1">Video Editing</h3>
-                    <p class="text-gray-400 text-sm">Experimenting with software.</p>
-                </div>
-            </div>
-        </section>
-
-
-        <footer class="text-center mt-12 text-gray-500 lg:hidden">
-            <p>Thanks for stopping by. 🙂</p>
-            <div class="mt-4">
-                <a href="mailto:info@tibbetech.com" class="text-red-400 hover:underline">Send me an email!</a>
-            </div>
-        </footer>
-
-    </div>
-</div>
-
-<script>
-    // Global variable to manage the React application root
-    let musicReactRoot = null;
-    let musicInterval = null; // Still needed for the main router logic to clean up
-
-    // --- ROUTER & NAVIGATION LOGIC ---
-
-    const pageSections = document.querySelectorAll('.page-section');
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    /**
-     * Shows the content section corresponding to the current hash and updates the navigation.
-     */
-    function router() {
-        // Default to #about if no hash is present in the URL
-        const hash = window.location.hash || '#about';
-        const targetId = hash.substring(1);
-
-        // 1. Hide all sections and remove active class
-        pageSections.forEach(section => {
-            section.classList.remove('active');
-            section.style.display = 'none';
-        });
-
-        // 2. Stop the React music app when switching away
-        if (musicReactRoot && targetId !== 'music') {
-            musicReactRoot.unmount();
-            musicReactRoot = null;
-        }
-
-        // 3. Find and show the target section
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-            targetSection.style.display = 'block';
-
-            // Wait a moment for display:block to apply before starting transition
-            setTimeout(() => {
-                targetSection.classList.add('active');
-
-                // 4. Run specific page logic (Data fetching or React rendering)
-                if (targetId === 'music') initializeMusicPlayer();
-                if (targetId === 'projects') fetchProjects();
-            }, 50);
-        }
-
-        // 5. Update the active navigation link
-        updateActiveNav(hash);
-    }
-
-    /**
-     * Updates the active state of the sidebar navigation links.
-     */
-    function updateActiveNav(currentHash) {
-        navLinks.forEach(link => {
-            link.classList.remove('active-nav-link');
-            link.classList.remove('text-red-400');
-            link.classList.add('text-gray-400');
-
-            if (link.getAttribute('href') === currentHash) {
-                link.classList.add('active-nav-link');
-                link.classList.remove('text-gray-400');
-            }
-        });
-    }
-
-    // Listen for hash changes (when user clicks a navigation link)
-    window.addEventListener('hashchange', router);
-
-    // --- VIDEO & INITIAL LOAD LOGIC ---
-    document.addEventListener("DOMContentLoaded", () => {
-        const introVideo = document.querySelector(".intro-video");
-        const websiteContent = document.querySelector(".website-content");
-
-        introVideo.addEventListener("ended", () => {
-            introVideo.classList.add('fade-out-video');
-        });
-
-        introVideo.addEventListener('animationend', () => {
-            introVideo.style.display = "none";
-            websiteContent.style.display = "block";
-            // Initial load of the correct page after intro
-            router();
-        });
-
-        // Fallback for browsers that don't fire 'ended' quickly (or if video is paused)
-        setTimeout(() => {
-            if (websiteContent.style.display !== "block") {
-                introVideo.style.display = "none";
-                websiteContent.style.display = "block";
-                router();
-            }
-        }, 4000);
-
-        // Set default hash on initial load if none exists
-        if (!window.location.hash) {
-            window.location.hash = '#about';
-        }
-    });
-
-
-    // --- REACT APP INITIALIZER ---
-    function initializeMusicPlayer() {
-        // Only run if React is available and the root hasn't been created yet
-        if (window.ReactDOM && !musicReactRoot) {
-            const container = document.getElementById('now-playing-root');
-            if (container) {
-                // Ensure the initial loading text is cleared before rendering React
-                container.innerHTML = ''; 
-                musicReactRoot = ReactDOM.createRoot(container);
-                // The JSX for the app is defined in the <script type="text/babel"> block below
-                musicReactRoot.render(React.createElement(NowPlayingSite));
-            }
-        }
-    }
-
-
-    // --- DATA FETCHING FUNCTIONS (Vanilla JS) ---
-
-    // The vanilla JS music fetching function `fetchSpotifyData` has been removed
-    // since it's now handled by the React component.
-
-    async function fetchProjects() {
-        const container = document.getElementById('projects-container');
-        if (!container) return;
-
-        try {
-            // Placeholder: Replace with actual projects.json content
-            // NOTE: Since I can't access your local files, I'll use placeholder content
-            const projects = [
-                {
-                    title: "School Light Show",
-                    description: "Programming DMX lighting for the school's annual musical using Avolites.",
-                    imageUrl: "https://via.placeholder.com/300x200?text=Lighting+Project",
-                    projectUrl: "#"
-                },
-                {
-                    title: "DIY Media Server",
-                    description: "Building a small, low-power server for media streaming and home automation.",
-                    imageUrl: "https://via.placeholder.com/300x200?text=Media+Server",
-                    projectUrl: "#"
-                },
-                {
-                    title: "Portfolio Site V1",
-                    description: "This very website! Learning Tailwind CSS and modular JS/React integration.",
-                    imageUrl: "https://via.placeholder.com/300x200?text=Portfolio+v1",
-                    projectUrl: "#"
-                }
-            ];
-            
-            if (!projects || projects.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No projects to display at the moment.</p>';
-                return;
-            }
-
-            let projectsHtml = '';
-            projects.forEach(project => {
-                projectsHtml += `
-                    <a href="${project.projectUrl}" target="_blank" rel="noopener noreferrer" class="block bg-[#121212] rounded-xl shadow-xl overflow-hidden transform hover:translate-y-[-0.5rem] transition-all duration-300 ease-in-out border-t-2 border-red-400/50">
-                        <img src="${project.imageUrl}" alt="Image for ${project.title}" class="w-full h-40 object-cover">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-red-400 mb-2">${project.title}</h3>
-                            <p class="text-gray-300">${project.description}</p>
-                        </div>
-                    </a>
-                `;
-            });
-            container.innerHTML = projectsHtml;
-
-
-        } catch (error) {
-            console.error('Error fetching projects:', error);
-            container.innerHTML = `<p class="text-red-400 col-span-full text-center">
-                    Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
-                </p>`;
-        }
-    }
-
-
-    // --- VISITOR TRACKING LOGIC ---
-    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
-
-    async function getVisitorIP() {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
-        } catch (err) {
-            console.error('Failed to get IP:', err);
-            return 'Unknown IP';
-        }
-    }
-
-    async function sendDiscordWebhookMessage(content) {
-        try {
-            await fetch(DISCORD_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content }),
-            });
-            console.log('Discord webhook sent.');
-        } catch (error) {
-            console.error('Failed to send Discord webhook:', error);
-        }
-    }
-
-    // Call visitor tracking once
-    sendVisitorIPToDiscord();
-
-    async function sendVisitorIPToDiscord() {
-        const ip = await getVisitorIP();
-        sendDiscordWebhookMessage(`🚀 Visitor on Tibbe's website! IP: ${ip}`);
-    }
-</script>
-
+<div id="root"></div>
 
 <script type="text/babel">
     const { useState, useEffect } = React;
 
     // --- Configuration ---
-    // NOTE: This URL is used by the React component.
     const API_URL = "https://spotitech.tibbetech.com/listeningto";
     const UPDATE_INTERVAL = 15000;
 
     // --- Utility to darken an RGB color ---
-    const darkenRgb = (rgbArray, factor = 0.1) => {
+    const darkenRgb = (rgbArray, factor = 0.1) => { // Lower factor for darker result
         return rgbArray.map(c => Math.max(0, Math.floor(c * factor)));
     };
 
-    // --- Custom Hook for API Fetching ---
+
+    // --- Custom Hook for API Fetching (Unchanged) ---
     const useNowPlaying = () => {
         const [trackData, setTrackData] = useState(null);
         const [isLoading, setIsLoading] = useState(true);
@@ -478,9 +134,7 @@
 
         useEffect(() => {
             fetchData();
-            // Start the polling interval
             const intervalId = setInterval(fetchData, UPDATE_INTERVAL);
-            // Cleanup function to clear interval when the component unmounts
             return () => clearInterval(intervalId);
         }, []);
 
@@ -495,7 +149,7 @@
         const [lastUpdateTimestamp, setLastUpdateTimestamp] = useState(Date.now());
 
 
-        // --- Color Extraction & Progress Initialization Logic ---
+        // --- Color Extraction & Progress Initialization Logic (FIXED DEPENDENCY) ---
         useEffect(() => {
             // Reset palette and progress when a new song is detected
             setPalette(null);
@@ -503,7 +157,9 @@
             if (trackData && trackData.albumArt && trackData.playing && window.ColorThief) {
                 const colorThief = new ColorThief();
                 const img = new Image();
-                img.crossOrigin = 'Anonymous'; // CRITICAL for CORS
+
+                // IMPORTANT: This is the critical part for cross-origin image loading
+                img.crossOrigin = 'Anonymous';
 
                 // Set up progress tracking on new song load
                 const [minP, secP] = trackData.progress.split(':').map(Number);
@@ -517,6 +173,7 @@
 
                 // Color Extraction
                 img.onload = () => {
+                    console.log("Image loaded successfully. Attempting ColorThief...");
                     try {
                         const dominantColor = colorThief.getColor(img);
                         const paletteColors = colorThief.getPalette(img, 5);
@@ -525,20 +182,23 @@
                             accent1: paletteColors[1] || dominantColor,
                             accent2: paletteColors[2] || dominantColor,
                         });
+                        console.log("ColorThief Succeeded. Extracted colors:", dominantColor);
                     } catch(e) {
-                        console.error("ColorThief failed to extract colors:", e);
-                        setPalette({ dominant: [248, 113, 113], accent1: [249, 115, 22], accent2: [239, 68, 68] }); // Fallback to red/orange
+                        console.error("ColorThief failed to extract colors (CORS or data issue):", e);
+                        // Fallback palette if extraction fails
+                        setPalette({ dominant: [255, 255, 255], accent1: [249, 115, 22], accent2: [239, 68, 68] });
                     }
                 };
                 img.onerror = () => {
-                    console.error("Failed to load album art for color extraction.");
-                    setPalette({ dominant: [248, 113, 113], accent1: [249, 115, 22], accent2: [239, 68, 68] }); // Fallback to red/orange
+                    console.error("Failed to load album art for color extraction. Check image URL and CORS headers.");
+                    // Fallback palette if image load fails
+                    setPalette({ dominant: [255, 255, 255], accent1: [249, 115, 22], accent2: [239, 68, 68] });
                 };
                 img.src = `${trackData.albumArt}?t=${Date.now()}`;
             }
-        }, [trackData?.title, trackData?.albumArt]);
+        }, [trackData?.title, trackData?.albumArt]); // Depend on title/albumArt for new track
 
-        // --- Progress Animation Loop ---
+        // --- Progress Animation Loop (Unchanged) ---
         useEffect(() => {
             if (!trackData || !trackData.playing || !trackData.duration) return;
 
@@ -569,48 +229,58 @@
         }, [trackData, lastUpdateTimestamp]);
 
 
-        // --- Styling Variable setup & Dynamic CSS Variable Update ---
-        const dominantRgb = palette?.dominant ? palette.dominant.join(',') : '248, 113, 113'; // Default Red-400
+        // --- Styling Variable setup (Uses palette state) ---
+        const dominantRgb = palette?.dominant ? palette.dominant.join(',') : '255, 255, 255';
         const accent1Rgb = palette?.accent1 ? palette.accent1.join(',') : '249,115,22';
-        const dominantDarkRgb = palette?.dominant ? darkenRgb(palette.dominant, 0.1).join(',') : '18, 18, 18'; // Default dark gray
+        const accent2Rgb = palette?.accent2 ? palette.accent2.join(',') : '239,68,68';
 
+        // Calculate a darker version of the dominant color for the base background
+        const dominantDarkRgb = palette?.dominant ? darkenRgb(palette.dominant, 0.1).join(',') : '3, 7, 18';
+
+        // --- Dynamic CSS Variable Update (DEPENDS on palette state) ---
         useEffect(() => {
-            // Apply the dominant color to the progress bar and text elements
-            document.body.style.setProperty('--dynamic-progress-color', `rgb(${dominantRgb})`);
-            document.body.style.setProperty('--dynamic-progress-glow', `rgba(${dominantRgb}, 0.9)`);
-            document.body.style.setProperty('--dynamic-text-color', `rgb(${dominantRgb})`);
-            
-            // NOTE: We DO NOT set the main background colors here, as that would affect the whole page,
-            // which is currently a dark fixed color in the main CSS. We'll use the dominant color
-            // for the album art glow and progress bar.
-        }, [dominantRgb, accent1Rgb, dominantDarkRgb, palette]);
+            // New: Set the base background color of the body to a darker version of the dominant color
+            document.body.style.setProperty('--dynamic-bg-color', `rgb(${dominantDarkRgb})`);
+
+            // Background Aurora
+            document.body.style.setProperty('--aurora-gradient-1', `linear-gradient(315deg, rgba(${dominantRgb}, 0.8) 0%, rgba(${accent1Rgb}, 0.6) 74%)`);
+            document.body.style.setProperty('--aurora-gradient-2', `linear-gradient(45deg, rgba(${accent1Rgb}, 0.7) 0%, rgba(${accent2Rgb}, 0.5) 74%)`);
+
+            // Text Glow (Thematic)
+            document.body.style.setProperty('--text-glow-color', `rgba(${dominantRgb}, 0.8)`);
+
+            // Album Art Glow (Thematic)
+            document.body.style.setProperty('--album-art-glow-color', `rgba(${accent1Rgb}, 0.7)`);
+
+            // Progress Bar Glow (Thematic)
+            document.body.style.setProperty('--progress-glow-color', `rgba(${dominantRgb}, 0.9)`);
+
+        }, [dominantRgb, accent1Rgb, accent2Rgb, palette, dominantDarkRgb]);
 
 
-        // --- Handlers for Loading/Error States ---
+        // --- Handlers for Loading/Error States (Unchanged) ---
         if (isLoading) {
             return (
-                <div className="flex flex-col justify-center items-center text-white p-8">
-                    <div className="animate-pulse text-2xl font-extrabold text-red-400">LOADING TRACK DATA...</div>
+                <div className="min-h-screen flex flex-col justify-center items-center text-white p-8 text-glow">
+                    <div className="animate-pulse text-5xl font-extrabold">...LOADING TRACK DATA...</div>
                 </div>
             );
         }
 
         if (error) {
             return (
-                <div className="flex flex-col justify-center items-center text-white p-8">
-                    <h1 className="text-2xl font-extrabold mb-4 text-red-500">🚨 API ERROR 🚨</h1>
-                    <p className="text-lg text-red-300 text-center">Could not fetch data from Spotify API.</p>
+                <div className="min-h-screen flex flex-col justify-center items-center text-white p-8 text-glow" style={{ backgroundColor: 'rgba(128, 0, 0, 0.5)' }}>
+                    <h1 className="text-5xl font-extrabold mb-4">🚨 API ERROR 🚨</h1>
+                    <p className="text-3xl text-red-300 text-center">Could not fetch data from your API.</p>
                 </div>
             );
         }
 
         if (!trackData || !trackData.playing) {
-            const lastTrack = trackData?.title ? `${trackData.title} by ${trackData.artist}` : 'N/A';
             return (
-                <div className="flex flex-col justify-center items-center text-white p-8">
-                    <h1 className="text-3xl font-extrabold mb-4 text-red-400">😴 Speakers Quiet 🤫</h1>
-                    <p className="text-xl text-gray-300">Nothing playing right now. Check back!</p>
-                    <p className="text-md text-gray-500 mt-4">Last track: {lastTrack}</p>
+                <div className="min-h-screen flex flex-col justify-center items-center text-white p-8 text-glow">
+                    <h1 className="text-6xl font-extrabold mb-4">😴 Speakers Quiet 🤫</h1>
+                    <p className="text-3xl text-gray-300">Nothing playing right now. Check back!</p>
                 </div>
             );
         }
@@ -632,55 +302,87 @@
         const estimatedProgressSeconds = (currentProgressPercent / 100) * totalDurationSeconds;
         const displayProgress = formatTime(estimatedProgressSeconds);
 
-        const trackUrl = trackData.song_url || "#";
-        const sourceText = isManual ? "(CD/Vinyl)" : "(Spotify)";
-        const nextText = isManual ? "Enjoy the music!" : `Next up: ${next || 'Unknown'}`;
-
 
         return (
-            <a href={trackUrl} target="_blank" rel="noopener noreferrer" className="music-track-info space-y-4 md:space-y-0 md:space-x-6">
-                <img
-                    src={albumArt}
-                    alt={`${album} cover`}
-                    className={`w-32 h-32 rounded-lg shadow-xl border-4 border-red-400 ${!isManual ? 'album-art-spin' : ''}`}
-                    style={{ 
-                        borderColor: `rgb(${dominantRgb})`,
-                        boxShadow: `0 0 20px 5px rgba(${accent1Rgb}, 0.5)`
-                    }}
-                />
-                <div className="text-center md:text-left flex-grow">
-                    <p className="text-lg font-bold text-white flex items-center justify-center md:justify-start">
-                        <span className="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping" style={{ backgroundColor: `rgb(${dominantRgb})` }}></span>
-                        Currently Listening {sourceText}:
-                    </p>
-                    <p className="text-3xl text-red-400 font-extrabold truncate" style={{ color: `rgb(${dominantRgb})` }}>{title}</p>
-                    <p className="text-xl text-gray-300 mb-4">by {artist} (from {album})</p>
+            <div className="min-h-screen flex items-center justify-center relative p-8">
+                {/* Content Container - No Card Styles */}
+                <div className="now-playing-content">
+                    <div className="flex flex-col items-center md:flex-row gap-8 md:gap-12 w-full">
 
-                    {/* Progress Bar (Only visible for Spotify tracks) */}
-                    {!isManual && duration && (
-                        <div className="mt-2">
-                            <div className="h-2 rounded-full bg-white/20 overflow-hidden">
-                                <div
-                                    className="h-full rounded-full transition-all duration-1000 ease-linear"
-                                    style={{
-                                        width: `${currentProgressPercent}%`,
-                                        backgroundColor: `rgb(${dominantRgb})`,
-                                        boxShadow: `0 0 5px 1px rgba(${dominantRgb}, 0.7)`
-                                    }}
-                                ></div>
-                            </div>
-                            <div className="flex justify-between text-sm font-bold mt-1 text-gray-400">
-                                <span>{displayProgress}</span>
-                                <span>{duration}</span>
-                            </div>
+                        {/* Album Art & Tags */}
+                        <div className="flex-shrink-0 relative w-full max-w-sm md:max-w-none md:w-96">
+                            {albumArt && (
+                                <>
+                                    <img
+                                        src={albumArt}
+                                        alt={`Album art for ${album}`}
+                                        className="w-full aspect-square rounded-3xl shadow-2xl album-art-glow"
+                                        loading="eager"
+                                        crossOrigin="anonymous" /* Added crossOrigin to the rendered image too */
+                                    />
+                                    {isManual && (
+                                        <span className="manual-play-tag absolute top-6 right-6 text-xl px-5 py-2 rounded-full shadow-2xl">
+                                            💿 CD/VINYL
+                                        </span>
+                                    )}
+                                </>
+                            )}
                         </div>
-                    )}
-                    
-                    <p className="text-md text-gray-500 mt-2">{nextText}</p>
+
+                        {/* Track Info */}
+                        <div className="flex flex-col justify-center flex-grow w-full text-glow">
+                            <p className="text-2xl font-extrabold text-white uppercase tracking-widest mb-4">
+                                🎶 NOW PLAYING
+                            </p>
+                            <h2 className="text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight leading-none mb-3 break-words text-white">
+                                {title}
+                            </h2>
+                            <h3 className="text-4xl lg:text-5xl font-semibold text-gray-200 mb-6 break-words">
+                                {artist}
+                            </h3>
+                            <p className="text-2xl text-gray-300 italic mb-8">
+                                from **{album}**
+                            </p>
+
+                            {/* Progress Bar */}
+                            {duration && (
+                                <div className="mt-4 mb-8">
+                                    <div className="h-4 rounded-full bg-white/20 overflow-hidden">
+                                        <div
+                                            className="progress-bar-fill h-full rounded-full transition-all duration-1000 ease-linear"
+                                            style={{
+                                                width: `${currentProgressPercent}%`,
+                                                // Set the actual background color here using the dominant color
+                                                backgroundColor: `rgb(${dominantRgb})`,
+                                            }}
+                                        ></div>
+                                    </div>
+                                    {/* Display animated progress time */}
+                                    <div className="flex justify-between text-2xl font-bold mt-3 text-white">
+                                        <span>{displayProgress}</span>
+                                        <span>{duration}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Next Up Info */}
+                            {next && (
+                                <p className="mt-6 pt-6 border-t border-white/40 text-3xl text-gray-200">
+                                    <span className="font-extrabold text-white">NEXT:</span> <span className="font-light">{next}</span>
+                                </p>
+                            )}
+
+                        </div>
+                    </div>
                 </div>
-            </a>
+            </div>
         );
     };
+
+    // --- Render the App ---
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<NowPlayingSite />);
 </script>
 </body>
 </html>
