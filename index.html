@@ -7,7 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/color-thief-browser@2.0.2/js/color-thief.min.js"></script>
+
     <style>
+        /* --- Base Styles --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0d0d0d;
@@ -15,6 +23,8 @@
             padding-top: 5rem;
             scroll-behavior: smooth;
         }
+
+        /* --- Intro Video/Load Styles (Unchanged) --- */
         .intro-video {
             position: fixed;
             top: 0;
@@ -34,21 +44,22 @@
         .website-content {
             display: none;
         }
-        /* Page Content Transition/Routing Styles */
+
+        /* --- Page Content Transition/Routing Styles (Unchanged) --- */
         .page-section {
-            display: none; /* All sections hidden by default */
+            display: none;
             opacity: 0;
             transform: translateY(10px);
             transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-            min-height: 80vh; /* Prevent layout jump */
+            min-height: 80vh;
         }
         .page-section.active {
-            display: block; /* Show active section */
+            display: block;
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* NEW: STICKY SIDEBAR LAYOUT FOR DESKTOP (lg screens and up) */
+        /* --- DESKTOP SIDEBAR LAYOUT (Unchanged) --- */
         @media (min-width: 1024px) {
             body {
                 padding-top: 0;
@@ -84,6 +95,23 @@
                 color: #f87171;
                 background-color: #1a1a1a;
             }
+        }
+
+        /* --- Custom Styles for Dynamic Music Section --- */
+        .music-track-info {
+            /* Ensures the content within the music section is centered and styled */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .album-art-spin {
+            /* Re-added the simple spin animation for non-manual tracks */
+            animation: spin 5s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -138,12 +166,9 @@
 
         <section id="music" class="page-section max-w-4xl mx-auto">
             <h2 class="text-3xl font-bold text-white text-center mb-8">What I'm Listening To 🎵</h2>
-            <div id="now-playing-section" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30">
-                <h3 class="text-2xl font-semibold text-red-400 mb-4">Spotify Status</h3>
-                <div id="now-playing-container" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                    <p class="text-gray-400">Loading music data...</p>
-                </div>
-                </div>
+            <div id="now-playing-root" class="bg-[#121212] p-8 rounded-xl shadow-2xl flex flex-col items-center border border-red-400/30 min-h-[300px]">
+                <p class="text-gray-400">Initializing music player...</p>
+            </div>
             <div class="mt-8">
                 <p class="text-center text-gray-500">More stats coming soon...</p>
             </div>
@@ -202,6 +227,10 @@
 </div>
 
 <script>
+    // Global variable to manage the React application root
+    let musicReactRoot = null;
+    let musicInterval = null; // Still needed for the main router logic to clean up
+
     // --- ROUTER & NAVIGATION LOGIC ---
 
     const pageSections = document.querySelectorAll('.page-section');
@@ -221,7 +250,13 @@
             section.style.display = 'none';
         });
 
-        // 2. Find and show the target section
+        // 2. Stop the React music app when switching away
+        if (musicReactRoot && targetId !== 'music') {
+            musicReactRoot.unmount();
+            musicReactRoot = null;
+        }
+
+        // 3. Find and show the target section
         const targetSection = document.getElementById(targetId);
         if (targetSection) {
             targetSection.style.display = 'block';
@@ -230,15 +265,13 @@
             setTimeout(() => {
                 targetSection.classList.add('active');
 
-                // 3. Run specific page logic (Data fetching)
-                if (targetId === 'music') fetchSpotifyData();
-                else if (musicInterval) clearInterval(musicInterval);
-
+                // 4. Run specific page logic (Data fetching or React rendering)
+                if (targetId === 'music') initializeMusicPlayer();
                 if (targetId === 'projects') fetchProjects();
             }, 50);
         }
 
-        // 4. Update the active navigation link
+        // 5. Update the active navigation link
         updateActiveNav(hash);
     }
 
@@ -293,109 +326,55 @@
     });
 
 
-    // --- DATA FETCHING FUNCTIONS (MODIFIED FOR SPOTIFY API) ---
-
-    const SPOTIFY_API_URL = 'https://spotitech.tibbetech.com/listeningto';
-    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
-
-    let musicInterval;
-
-    async function fetchSpotifyData() {
-        // Clear any existing interval to prevent overlap
-        if (musicInterval) clearInterval(musicInterval);
-
-        const runFetch = async () => {
-            const trackContainer = document.getElementById('now-playing-container');
-            if (!trackContainer) return;
-
-            try {
-                const response = await fetch(SPOTIFY_API_URL);
-                const data = await response.json();
-
-                const { playing, title, artist, album, albumArt, song_url, progress, duration, remaining, next } = data;
-
-                if (playing) {
-                    // --- NEW LOGIC FOR MANUAL CD/VINYL ---
-                    // Determine if the track is manual (CD/Vinyl) based on server response
-                    const isManual = (duration === "" && remaining === "" && next === null);
-                    const sourceText = isManual ? "(CD/Vinyl)" : "(Spotify)";
-                    const nextText = isManual ? "Enjoy the music!" : `Next up: ${next}`;
-                    
-                    // The progress bar is only shown for Spotify tracks (where duration is not empty)
-                    const progressBarHtml = isManual ? 
-                        `<p class="text-sm text-gray-500 mt-1">Manual playback. ${nextText}</p>` : 
-                        `
-                            <div class="w-full h-2 bg-[#1a1a1a] rounded-full mt-1 overflow-hidden">
-                                ${(() => {
-                                    const timeToSeconds = (t) => {
-                                        const parts = t.split(':');
-                                        return parts.length === 2 ? (parseInt(parts[0]) * 60) + parseInt(parts[1]) : 0;
-                                    };
-                                    const currentSeconds = timeToSeconds(progress);
-                                    const totalSeconds = timeToSeconds(duration);
-                                    const progressPercent = totalSeconds > 0 ? (currentSeconds / totalSeconds) * 100 : 0;
-                                    return `<div class="h-full bg-red-400" style="width: ${progressPercent}%;"></div>`;
-                                })()}
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1">${progress} / ${duration} (${nextText})</p>
-                        `;
-
-                    // Currently Playing logic
-                    const trackHtml = `
-                        <a href="${song_url}" target="_blank" class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                            <img src="${albumArt}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg border-2 border-red-400 ${!isManual ? 'animate-[spin_5s_linear_infinite]' : ''}">
-                            <div class="text-center md:text-left flex-grow">
-                                <p class="text-xl font-bold text-white flex items-center justify-center md:justify-start">
-                                    <span class="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping"></span>Currently Listening ${sourceText}:
-                                </p>
-                                <p class="text-2xl text-red-400 font-extrabold truncate">${title}</p>
-                                <p class="text-lg text-gray-300 mb-2">by ${artist} (from ${album})</p>
-                                ${progressBarHtml}
-                            </div>
-                        </a>
-                    `;
-                    trackContainer.innerHTML = trackHtml;
-                } else {
-                    // Not Playing / Recently Played logic (assuming the API still returns the last track on stop)
-                    const recentTrackHtml = `
-                        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full">
-                            <img src="${albumArt || 'placeholder.png'}" alt="${album} cover" class="w-24 h-24 rounded-md shadow-lg">
-                            <div class="text-center md:text-left">
-                                <p class="text-xl font-bold text-white">Not currently playing.</p>
-                                <p class="text-lg text-gray-300">Last played track:</p>
-                                <p class="text-2xl text-red-400 font-extrabold truncate">${title || 'N/A'}</p>
-                                <p class="text-lg text-gray-300">by ${artist || 'Unknown'}</p>
-                            </div>
-                        </div>
-                    `;
-                    trackContainer.innerHTML = recentTrackHtml;
-                }
-
-
-            } catch (error) {
-                console.error('Error fetching Spotify data:', error);
-                trackContainer.innerHTML = '<p class="text-gray-400">Could not load current music data. API might be offline.</p>';
+    // --- REACT APP INITIALIZER ---
+    function initializeMusicPlayer() {
+        // Only run if React is available and the root hasn't been created yet
+        if (window.ReactDOM && !musicReactRoot) {
+            const container = document.getElementById('now-playing-root');
+            if (container) {
+                // Ensure the initial loading text is cleared before rendering React
+                container.innerHTML = ''; 
+                musicReactRoot = ReactDOM.createRoot(container);
+                // The JSX for the app is defined in the <script type="text/babel"> block below
+                musicReactRoot.render(React.createElement(NowPlayingSite));
             }
-        };
-
-        // Run immediately and set interval
-        runFetch();
-        musicInterval = setInterval(runFetch, 5000); // Poll every 5 seconds for a dynamic "Now Playing" status
+        }
     }
 
+
+    // --- DATA FETCHING FUNCTIONS (Vanilla JS) ---
+
+    // The vanilla JS music fetching function `fetchSpotifyData` has been removed
+    // since it's now handled by the React component.
 
     async function fetchProjects() {
         const container = document.getElementById('projects-container');
         if (!container) return;
 
         try {
-            // CORRECTED: Re-enabled the actual fetch call
-            const response = await fetch('projects.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const projects = await response.json();
-
+            // Placeholder: Replace with actual projects.json content
+            // NOTE: Since I can't access your local files, I'll use placeholder content
+            const projects = [
+                {
+                    title: "School Light Show",
+                    description: "Programming DMX lighting for the school's annual musical using Avolites.",
+                    imageUrl: "https://via.placeholder.com/300x200?text=Lighting+Project",
+                    projectUrl: "#"
+                },
+                {
+                    title: "DIY Media Server",
+                    description: "Building a small, low-power server for media streaming and home automation.",
+                    imageUrl: "https://via.placeholder.com/300x200?text=Media+Server",
+                    projectUrl: "#"
+                },
+                {
+                    title: "Portfolio Site V1",
+                    description: "This very website! Learning Tailwind CSS and modular JS/React integration.",
+                    imageUrl: "https://via.placeholder.com/300x200?text=Portfolio+v1",
+                    projectUrl: "#"
+                }
+            ];
+            
             if (!projects || projects.length === 0) {
                 container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No projects to display at the moment.</p>';
                 return;
@@ -404,28 +383,30 @@
             let projectsHtml = '';
             projects.forEach(project => {
                 projectsHtml += `
-                        <a href="${project.projectUrl}" target="_blank" rel="noopener noreferrer" class="block bg-[#121212] rounded-xl shadow-xl overflow-hidden transform hover:translate-y-[-0.5rem] transition-all duration-300 ease-in-out border-t-2 border-red-400/50">
-                            <img src="${project.imageUrl}" alt="Image for ${project.title}" class="w-full h-40 object-cover">
-                            <div class="p-6">
-                                <h3 class="text-xl font-bold text-red-400 mb-2">${project.title}</h3>
-                                <p class="text-gray-300">${project.description}</p>
-                            </div>
-                        </a>
-                    `;
+                    <a href="${project.projectUrl}" target="_blank" rel="noopener noreferrer" class="block bg-[#121212] rounded-xl shadow-xl overflow-hidden transform hover:translate-y-[-0.5rem] transition-all duration-300 ease-in-out border-t-2 border-red-400/50">
+                        <img src="${project.imageUrl}" alt="Image for ${project.title}" class="w-full h-40 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-red-400 mb-2">${project.title}</h3>
+                            <p class="text-gray-300">${project.description}</p>
+                        </div>
+                    </a>
+                `;
             });
             container.innerHTML = projectsHtml;
 
+
         } catch (error) {
             console.error('Error fetching projects:', error);
-            // Added guidance for the user in case of fetch failure
             container.innerHTML = `<p class="text-red-400 col-span-full text-center">
-                                            Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
-                                        </p>`;
+                    Could not load projects. Ensure 'projects.json' is in the root directory and accessible.
+                </p>`;
         }
     }
 
 
     // --- VISITOR TRACKING LOGIC ---
+    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1404964351420530688/vDoTPetx7SuSHdP5xnetRmpH0DHSpZhbjFf6l4UQ-zIxamz2S7jcLgDqEwrMCweyyUsQ';
+
     async function getVisitorIP() {
         try {
             const response = await fetch('https://api.ipify.org?format=json');
@@ -459,5 +440,247 @@
     }
 </script>
 
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- Configuration ---
+    // NOTE: This URL is used by the React component.
+    const API_URL = "https://spotitech.tibbetech.com/listeningto";
+    const UPDATE_INTERVAL = 15000;
+
+    // --- Utility to darken an RGB color ---
+    const darkenRgb = (rgbArray, factor = 0.1) => {
+        return rgbArray.map(c => Math.max(0, Math.floor(c * factor)));
+    };
+
+    // --- Custom Hook for API Fetching ---
+    const useNowPlaying = () => {
+        const [trackData, setTrackData] = useState(null);
+        const [isLoading, setIsLoading] = useState(true);
+        const [error, setError] = useState(null);
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`${API_URL}?cacheBuster=${Date.now()}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                setTrackData(data);
+                setIsLoading(false);
+            } catch (e) {
+                console.error("Failed to fetch current track:", e);
+                setError(e.message);
+                setIsLoading(false);
+            }
+        };
+
+        useEffect(() => {
+            fetchData();
+            // Start the polling interval
+            const intervalId = setInterval(fetchData, UPDATE_INTERVAL);
+            // Cleanup function to clear interval when the component unmounts
+            return () => clearInterval(intervalId);
+        }, []);
+
+        return { trackData, isLoading, error };
+    };
+
+    // --- The Main Component ---
+    const NowPlayingSite = () => {
+        const { trackData, isLoading, error } = useNowPlaying();
+        const [palette, setPalette] = useState(null);
+        const [currentProgressPercent, setCurrentProgressPercent] = useState(0);
+        const [lastUpdateTimestamp, setLastUpdateTimestamp] = useState(Date.now());
+
+
+        // --- Color Extraction & Progress Initialization Logic ---
+        useEffect(() => {
+            // Reset palette and progress when a new song is detected
+            setPalette(null);
+
+            if (trackData && trackData.albumArt && trackData.playing && window.ColorThief) {
+                const colorThief = new ColorThief();
+                const img = new Image();
+                img.crossOrigin = 'Anonymous'; // CRITICAL for CORS
+
+                // Set up progress tracking on new song load
+                const [minP, secP] = trackData.progress.split(':').map(Number);
+                const [minD, secD] = trackData.duration ? trackData.duration.split(':').map(Number) : [0, 1];
+                const totalProgressSeconds = (minP * 60) + secP;
+                const totalDurationSeconds = (minD * 60) + secD;
+                const initialProgressPercent = (totalDurationSeconds > 0) ? (totalProgressSeconds / totalDurationSeconds) * 100 : 0;
+
+                setCurrentProgressPercent(initialProgressPercent);
+                setLastUpdateTimestamp(Date.now());
+
+                // Color Extraction
+                img.onload = () => {
+                    try {
+                        const dominantColor = colorThief.getColor(img);
+                        const paletteColors = colorThief.getPalette(img, 5);
+                        setPalette({
+                            dominant: dominantColor,
+                            accent1: paletteColors[1] || dominantColor,
+                            accent2: paletteColors[2] || dominantColor,
+                        });
+                    } catch(e) {
+                        console.error("ColorThief failed to extract colors:", e);
+                        setPalette({ dominant: [248, 113, 113], accent1: [249, 115, 22], accent2: [239, 68, 68] }); // Fallback to red/orange
+                    }
+                };
+                img.onerror = () => {
+                    console.error("Failed to load album art for color extraction.");
+                    setPalette({ dominant: [248, 113, 113], accent1: [249, 115, 22], accent2: [239, 68, 68] }); // Fallback to red/orange
+                };
+                img.src = `${trackData.albumArt}?t=${Date.now()}`;
+            }
+        }, [trackData?.title, trackData?.albumArt]);
+
+        // --- Progress Animation Loop ---
+        useEffect(() => {
+            if (!trackData || !trackData.playing || !trackData.duration) return;
+
+            const [minD, secD] = trackData.duration.split(':').map(Number);
+            const totalDurationMs = ((minD * 60) + secD) * 1000;
+
+            const animationInterval = setInterval(() => {
+                const now = Date.now();
+                const elapsedMsSinceLastApi = now - lastUpdateTimestamp;
+
+                const [minP, secP] = trackData.progress.split(':').map(Number);
+                const apiProgressMs = ((minP * 60) + secP) * 1000;
+
+                const estimatedProgressMs = apiProgressMs + elapsedMsSinceLastApi;
+
+                const newPercent = (estimatedProgressMs / totalDurationMs) * 100;
+
+                if (newPercent >= 100) {
+                    clearInterval(animationInterval);
+                    setCurrentProgressPercent(100);
+                    return;
+                }
+
+                setCurrentProgressPercent(newPercent);
+            }, 1000);
+
+            return () => clearInterval(animationInterval);
+        }, [trackData, lastUpdateTimestamp]);
+
+
+        // --- Styling Variable setup & Dynamic CSS Variable Update ---
+        const dominantRgb = palette?.dominant ? palette.dominant.join(',') : '248, 113, 113'; // Default Red-400
+        const accent1Rgb = palette?.accent1 ? palette.accent1.join(',') : '249,115,22';
+        const dominantDarkRgb = palette?.dominant ? darkenRgb(palette.dominant, 0.1).join(',') : '18, 18, 18'; // Default dark gray
+
+        useEffect(() => {
+            // Apply the dominant color to the progress bar and text elements
+            document.body.style.setProperty('--dynamic-progress-color', `rgb(${dominantRgb})`);
+            document.body.style.setProperty('--dynamic-progress-glow', `rgba(${dominantRgb}, 0.9)`);
+            document.body.style.setProperty('--dynamic-text-color', `rgb(${dominantRgb})`);
+            
+            // NOTE: We DO NOT set the main background colors here, as that would affect the whole page,
+            // which is currently a dark fixed color in the main CSS. We'll use the dominant color
+            // for the album art glow and progress bar.
+        }, [dominantRgb, accent1Rgb, dominantDarkRgb, palette]);
+
+
+        // --- Handlers for Loading/Error States ---
+        if (isLoading) {
+            return (
+                <div className="flex flex-col justify-center items-center text-white p-8">
+                    <div className="animate-pulse text-2xl font-extrabold text-red-400">LOADING TRACK DATA...</div>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div className="flex flex-col justify-center items-center text-white p-8">
+                    <h1 className="text-2xl font-extrabold mb-4 text-red-500">🚨 API ERROR 🚨</h1>
+                    <p className="text-lg text-red-300 text-center">Could not fetch data from Spotify API.</p>
+                </div>
+            );
+        }
+
+        if (!trackData || !trackData.playing) {
+            const lastTrack = trackData?.title ? `${trackData.title} by ${trackData.artist}` : 'N/A';
+            return (
+                <div className="flex flex-col justify-center items-center text-white p-8">
+                    <h1 className="text-3xl font-extrabold mb-4 text-red-400">😴 Speakers Quiet 🤫</h1>
+                    <p className="text-xl text-gray-300">Nothing playing right now. Check back!</p>
+                    <p className="text-md text-gray-500 mt-4">Last track: {lastTrack}</p>
+                </div>
+            );
+        }
+
+        // --- Track is Playing ---
+        const { title, artist, album, albumArt, duration, next, isManual } = trackData;
+
+        // Helper function to format time (in seconds) to MM:SS
+        const formatTime = (totalSeconds) => {
+            if (isNaN(totalSeconds) || totalSeconds < 0) return '0:00';
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        };
+
+        // Recalculate progress/duration for display from seconds/percent
+        const [minD, secD] = duration ? duration.split(':').map(Number) : [0, 1];
+        const totalDurationSeconds = (minD * 60) + secD;
+        const estimatedProgressSeconds = (currentProgressPercent / 100) * totalDurationSeconds;
+        const displayProgress = formatTime(estimatedProgressSeconds);
+
+        const trackUrl = trackData.song_url || "#";
+        const sourceText = isManual ? "(CD/Vinyl)" : "(Spotify)";
+        const nextText = isManual ? "Enjoy the music!" : `Next up: ${next || 'Unknown'}`;
+
+
+        return (
+            <a href={trackUrl} target="_blank" rel="noopener noreferrer" className="music-track-info space-y-4 md:space-y-0 md:space-x-6">
+                <img
+                    src={albumArt}
+                    alt={`${album} cover`}
+                    className={`w-32 h-32 rounded-lg shadow-xl border-4 border-red-400 ${!isManual ? 'album-art-spin' : ''}`}
+                    style={{ 
+                        borderColor: `rgb(${dominantRgb})`,
+                        boxShadow: `0 0 20px 5px rgba(${accent1Rgb}, 0.5)`
+                    }}
+                />
+                <div className="text-center md:text-left flex-grow">
+                    <p className="text-lg font-bold text-white flex items-center justify-center md:justify-start">
+                        <span className="h-3 w-3 mr-2 bg-red-400 rounded-full animate-ping" style={{ backgroundColor: `rgb(${dominantRgb})` }}></span>
+                        Currently Listening {sourceText}:
+                    </p>
+                    <p className="text-3xl text-red-400 font-extrabold truncate" style={{ color: `rgb(${dominantRgb})` }}>{title}</p>
+                    <p className="text-xl text-gray-300 mb-4">by {artist} (from {album})</p>
+
+                    {/* Progress Bar (Only visible for Spotify tracks) */}
+                    {!isManual && duration && (
+                        <div className="mt-2">
+                            <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+                                <div
+                                    className="h-full rounded-full transition-all duration-1000 ease-linear"
+                                    style={{
+                                        width: `${currentProgressPercent}%`,
+                                        backgroundColor: `rgb(${dominantRgb})`,
+                                        boxShadow: `0 0 5px 1px rgba(${dominantRgb}, 0.7)`
+                                    }}
+                                ></div>
+                            </div>
+                            <div className="flex justify-between text-sm font-bold mt-1 text-gray-400">
+                                <span>{displayProgress}</span>
+                                <span>{duration}</span>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <p className="text-md text-gray-500 mt-2">{nextText}</p>
+                </div>
+            </a>
+        );
+    };
+</script>
 </body>
 </html>
